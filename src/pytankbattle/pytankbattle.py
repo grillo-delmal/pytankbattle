@@ -9,6 +9,7 @@ import math
 import os
 
 from enum import Enum, auto
+from importlib.resources import files
 
 #### HELPER ####
 
@@ -245,9 +246,9 @@ def start_up():
     text_print = TextPrint()
 
     tank_img = pygame.image.load(
-        os.path.join('assets', 'tank.png'))
+        files('pytankbattle.assets').joinpath('tank.png').open())
     canon_img = pygame.image.load(
-        os.path.join('assets', 'canon.png'))
+        files('pytankbattle.assets').joinpath('canon.png').open())
 
     # FIXME: Initialize for MENU, not GAME
     pcount = pygame.joystick.get_count()

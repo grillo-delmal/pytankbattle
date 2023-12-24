@@ -1,0 +1,30 @@
+[project]
+name = "pytankbattle"
+version = "0.1.0"
+authors = [
+    { name="Grillo del Mal", email="grillo@delmal.cl" },
+]
+description = "A multiplayer battle royale tank game using the pygame engine"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License", 
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment",
+    "Topic :: Software Development :: Libraries :: pygame"
+]
+dependencies = [
+    "pygame"
+]
+
+[project.urls]
+Homepage = "https://github.com/grillo-delmal/pytankbattle"
+Issues = "https://github.com/grillo-delmal/pytankbattle/issues"
+
+[project.gui-scripts]
+pytankbattle = "pytankbattle.pytankbattle:main"
+
+[tool.setuptools.package-data]
+"pytankbattle.assets" = ["*.png"]
