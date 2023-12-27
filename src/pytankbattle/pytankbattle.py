@@ -92,6 +92,82 @@ playerColors = [
     (0xBB, 0xBB, 0xBB),
 ]
 
+class Canon():
+    def __init__(self, color):
+        self.angle = 0.0
+        self.bullets = 5
+        self.reload = 0
+        self.color = color
+
+    def reset(self, mstp: MapStartPos):
+        self.bullets = 5
+        self.reload = 0
+        self.angle = mstp.angle
+        pass
+
+
+class Tank():
+    def __init__(self, color):
+        self.px = 0.0
+        self.py = 0.0
+        self.v = 0.0
+        self.angle = 0
+        self.inmune = 0
+        self.color = color
+        self.c = Canon(color)
+
+    def reset(self, mstp: MapStartPos):
+        self.v = 0.0
+        self.inmune = CANON_INMUNE_TIME
+
+        self.px = mstp.px
+        self.py = mstp.py
+        self.angle = mstp.angle
+        self.c.reset(mstp)
+    
+    def check_colision(self, fx, fy):
+        ## PX PY fx fy TR TR
+        a = fx - self.px
+        b = fy - self.py
+
+        if (a**2 + b**2) < (TANK_RADIUS*2)**2:
+            return True
+        return False
+
+
+class Player():
+    def __init__(self, mstp: MapStartPos, playerColor):
+        self.active = True
+        self.t = Tank(playerColor)
+        self.score = 0
+        self.mstp = mstp
+
+    def reset(self):
+        self.score = 0
+        self.active = True
+        self.reset_tank()
+
+    def reset_tank(self):
+        self.t.reset(self.mstp)
+
+
+class Bullet():
+    def __init__(self, p: Player):
+        self.owner = p
+        self.del_b = False
+        self.px = p.t.px + (TANK_RADIUS+BULLET_RADIUS+1) * math.cos(p.t.c.angle)
+        self.py = p.t.py + (TANK_RADIUS+BULLET_RADIUS+1) * math.sin(p.t.c.angle)
+        self.angle = p.t.c.angle
+
+    def check_colision(self, tx, ty):
+        a = tx - self.px
+        b = ty - self.py
+
+        if (a**2 + b**2) < (TANK_RADIUS + BULLET_RADIUS)**2:
+            return True
+        return False
+
+
 class Controller():
     def __init__(self):
         self.move_angle = 0
@@ -105,6 +181,7 @@ class Controller():
             "right": False,
             "a": False,
             "b": False,
+            "start": False,
             "shoot": False
         }
 
@@ -154,83 +231,6 @@ class PyGameJoystick(Controller):
                 self.btns_d["shoot"] = True
             if button == 5:
                 self.btns_d["shoot"] = True
-
-
-class Canon():
-    def __init__(self, color):
-        self.angle = 0.0
-        self.bullets = 5
-        self.reload = 0
-        self.color = color
-
-    def reset(self, mstp: MapStartPos):
-        self.bullets = 5
-        self.reload = 0
-        self.angle = mstp.angle
-        pass
-
-
-class Tank():
-    def __init__(self, color):
-        self.px = 0.0
-        self.py = 0.0
-        self.v = 0.0
-        self.angle = 0
-        self.inmune = 0
-        self.color = color
-        self.c = Canon(color)
-
-    def reset(self, mstp: MapStartPos):
-        self.v = 0.0
-        self.inmune = CANON_INMUNE_TIME
-
-        self.px = mstp.px
-        self.py = mstp.py
-        self.angle = mstp.angle
-        self.c.reset(mstp)
-    
-    def check_colision(self, fx, fy):
-        ## PX PY fx fy TR TR
-        a = fx - self.px
-        b = fy - self.py
-
-        if (a**2 + b**2) < (TANK_RADIUS*2)**2:
-            return True
-        return False
-
-
-class Player():
-    def __init__(self, mstp: MapStartPos, playerColor):
-        self.active = True
-        self.t = Tank(playerColor)
-        self.CD = None
-        self.score = 0
-        self.mstp = mstp
-
-    def reset(self):
-        self.score = 0
-        self.active = True
-        self.reset_tank()
-
-    def reset_tank(self):
-        self.t.reset(self.mstp)
-
-
-class Bullet():
-    def __init__(self, p: Player):
-        self.owner = p
-        self.del_b = False
-        self.px = p.t.px + (TANK_RADIUS+BULLET_RADIUS+1) * math.cos(p.t.c.angle)
-        self.py = p.t.py + (TANK_RADIUS+BULLET_RADIUS+1) * math.sin(p.t.c.angle)
-        self.angle = p.t.c.angle
-
-    def check_colision(self, tx, ty):
-        a = tx - self.px
-        b = ty - self.py
-
-        if (a**2 + b**2) < (TANK_RADIUS + BULLET_RADIUS)**2:
-            return True
-        return False
 
 
 class PyGameKeyboardMouse(Controller):
@@ -293,6 +293,7 @@ class PyGameKeyboardMouse(Controller):
 #### HEADER END ####
 players = []
 bullets = []
+controllers = []
 
 tank_img = None
 canon_img = None
@@ -328,8 +329,10 @@ def start_up():
         "player": None,
         "controller": PyGameKeyboardMouse()
         }
+    controllers.append(keyboardmouse)
+
+    # FIXME: Players are not initialized here
     p = Player(mstps[0], playerColors[0])
-    p.CD = keyboardmouse["controller"]
     keyboardmouse["player"] = p
     players.append(p)
 
@@ -338,15 +341,17 @@ def start_up():
     for i in range(pcount):
         joy = {
             "driver": pygame.joystick.Joystick(i),
+            "player": None,
             "controller": PyGameJoystick()
-        }        
+        }
         joy["driver"].init()
         joysticks[joy["driver"].get_instance_id()] = joy 
+        controllers.append(joy)
 
+        # FIXME: Players are not initialized here
         pi = len(players)
-
         p = Player(mstps[pi], playerColors[pi])
-        p.CD = joy["controller"]
+        joy["player"] = p
         players.append(p)
 
     reset()
@@ -389,7 +394,6 @@ def scan_pads(status):
             if event.instance_id in joysticks:
                 joysticks[event.instance_id]["driver"] = None
     
-
     return status
 
 def menu():
@@ -413,62 +417,66 @@ def menu():
     return GameStatus.MENU
 
 #/************************* Game *************************
-def update_p(p: Player):
-    if isinstance(p.CD, Controller):
+def update_ps():
+    for c in controllers:
+        CD = c["controller"]
+        p = c["player"]
+
         # Set movement
-        if p.CD.move_magnitude > .3:
-            p.t.angle = p.CD.move_angle
-            p.t.v = TANK_MAX_SPEED * p.CD.move_magnitude
+        if CD.move_magnitude > .3:
+            p.t.angle = CD.move_angle
+            p.t.v = TANK_MAX_SPEED * CD.move_magnitude
         else:
             p.t.v = 0
 
         # Aim canon
-        if p.CD.point_magnitude > .3:
-            p.t.c.angle = p.CD.point_angle
+        if CD.point_magnitude > .3:
+            p.t.c.angle = CD.point_angle
 
         # Fire bullets
-        if p.CD.btns_d["shoot"]:
+        if CD.btns_d["shoot"]:
             if p.t.c.bullets > 0 and len(bullets) < MAX_BULLETS:
                 bullets.append(Bullet(p))
                 p.t.c.bullets -= 1
                 p.t.c.reload += CANON_RELOAD_TIME
+
+    for p in players:
+        # Update counters
+        if p.t.c.reload > 0:
+            p.t.c.reload -= 1
+            if p.t.c.reload % CANON_RELOAD_TIME == 0:
+                p.t.c.bullets += 1
         
-    # Update counters
-    if p.t.c.reload > 0:
-        p.t.c.reload -= 1
-        if p.t.c.reload % CANON_RELOAD_TIME == 0:
-            p.t.c.bullets += 1
-    
-    if p.t.inmune > 0:
-        p.t.inmune -= 1
+        if p.t.inmune > 0:
+            p.t.inmune -= 1
 
-    # Update physics
-    fx = ( p.t.px + p.t.v*math.cos(p.t.angle) )
-    fy = ( p.t.py + p.t.v*math.sin(p.t.angle) )
+        # Update physics
+        fx = ( p.t.px + p.t.v*math.cos(p.t.angle) )
+        fy = ( p.t.py + p.t.v*math.sin(p.t.angle) )
 
 
-    if not (fx > TANK_RADIUS and fx < WIDTH - TANK_RADIUS ):
-        fx = p.t.px
-        fy = p.t.py
-        p.t.v = 0
+        if not (fx > TANK_RADIUS and fx < WIDTH - TANK_RADIUS ):
+            fx = p.t.px
+            fy = p.t.py
+            p.t.v = 0
 
-    if not (fy > TANK_RADIUS and fy < HEIGHT - TANK_RADIUS ):
-        fx = p.t.px
-        fy = p.t.py
-        p.t.v = 0
+        if not (fy > TANK_RADIUS and fy < HEIGHT - TANK_RADIUS ):
+            fx = p.t.px
+            fy = p.t.py
+            p.t.v = 0
 
-    for op in players:
-        if op == p:
-            continue
+        for op in players:
+            if op == p:
+                continue
 
-        if op.active and p.t.inmune == 0:
-            if op.t.check_colision(fx, fy):
-                fx = p.t.px
-                fy = p.t.py
-                p.t.v = 0
-                
-    p.t.px = fx
-    p.t.py = fy
+            if op.active and p.t.inmune == 0:
+                if op.t.check_colision(fx, fy):
+                    fx = p.t.px
+                    fy = p.t.py
+                    p.t.v = 0
+                    
+        p.t.px = fx
+        p.t.py = fy
 
 def update_bs():
 
@@ -552,8 +560,7 @@ def draw():
         i += 1
 
 def game():
-    for p in players:
-        update_p(p)
+    update_ps()
     update_bs()
     draw()
 
