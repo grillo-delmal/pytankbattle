@@ -8,635 +8,184 @@ import pygame
 import math
 import os
 
-from enum import Enum, Flag, auto
+from enum import Enum, auto
 from importlib.resources import files
 
-#### HELPER ####
+from .controller import *
+from .map import *
+from .entities import *
+from .scenes import *
+from .utils import *
 
-class TextPrint:
-    def __init__(self):
-        self.reset()
-        self.font = pygame.font.Font(None, 25)
 
-    def tprint(self, screen, text):
-        text_bitmap = self.font.render(text, True, (255, 255, 255))
-        screen.blit(text_bitmap, (self.x, self.y))
-        self.y += self.line_height
+class PyTankBattle():
+    class State(Enum):
+        PAUSE   = auto()
+        MENU    = auto()
+        GAME    = auto()
+        CREDITS = auto()
+        QUIT    = auto()
 
-    def reset(self):
-        self.x = 10
-        self.y = 10
-        self.line_height = 15
+    mstps = [ 
+        MapStartPos(        50,          50,    PI/4),
+        MapStartPos(WIDTH - 50,          50,  3*PI/4),
+        MapStartPos(        50, HEIGHT - 50,   -PI/4),
+        MapStartPos(WIDTH - 50, HEIGHT - 50, -3*PI/4),
+        MapStartPos(WIDTH /  2,          50,    PI/2),
+        MapStartPos(WIDTH - 50, HEIGHT /  2,    PI),
+        MapStartPos(WIDTH /  2, HEIGHT - 50,   -PI/2),
+        MapStartPos(        50, HEIGHT /  2,     0),
+        ]
 
-    def indent(self):
-        self.x += 10
-
-    def unindent(self):
-        self.x -= 10
-
-text_print = None
-
-#### HEADER ####
-
-class GameStatus(Enum):
-    PAUSE   = auto()
-    MENU    = auto()
-    GAME    = auto()
-    CREDITS = auto()
-    QUIT    = auto()
-
-PI = 3.14159265
-
-BULLET_SPEED        = 4
-BULLET_RADIUS       = 3.5
-
-TANK_RADIUS         = 16
-
-TANK_MAX_SPEED      = 3
-CANON_RELOAD_TIME   = 120
-CANON_INMUNE_TIME   = 240
-
-MAX_BULLETS         = 100
-
-HEIGHT              = 300
-WIDTH               = 500
-
-SCREEN_MOVE_X       = 70 + 150
-SCREEN_MOVE_Y       = 60 + 60
-
-class MapStartPos():
-    def __init__(self, px, py, angle):
-        self.px = px
-        self.py = py
-        self.angle = angle
-
-mstps = [ 
-    MapStartPos(        50,          50,    PI/4),
-    MapStartPos(WIDTH - 50,          50,  3*PI/4),
-    MapStartPos(        50, HEIGHT - 50,   -PI/4),
-    MapStartPos(WIDTH - 50, HEIGHT - 50, -3*PI/4),
-    MapStartPos(WIDTH /  2,          50,    PI/2),
-    MapStartPos(WIDTH - 50, HEIGHT /  2,    PI),
-    MapStartPos(WIDTH /  2, HEIGHT - 50,   -PI/2),
-    MapStartPos(        50, HEIGHT /  2,     0),
+    playerColors = [
+        (0x33, 0xBB, 0x33),
+        (0xBB, 0x33, 0x33),
+        (0x33, 0x33, 0xBB),
+        (0x33, 0xBB, 0xBB),
+        (0xBB, 0xBB, 0x33),
+        (0xBB, 0x33, 0xBB),
+        (0x33, 0x33, 0x33),
+        (0xBB, 0xBB, 0xBB),
     ]
 
-playerColors = [
-    (0x33, 0xBB, 0x33),
-    (0xBB, 0x33, 0x33),
-    (0x33, 0x33, 0xBB),
-    (0x33, 0xBB, 0xBB),
-    (0xBB, 0xBB, 0x33),
-    (0xBB, 0x33, 0xBB),
-    (0x33, 0x33, 0x33),
-    (0xBB, 0xBB, 0xBB),
-]
-
-class Canon():
-    def __init__(self, color):
-        self.angle = 0.0
-        self.bullets = 5
-        self.reload = 0
-        self.color = color
-
-    def reset(self, mstp: MapStartPos):
-        self.bullets = 5
-        self.reload = 0
-        self.angle = mstp.angle
-        pass
-
-
-class Tank():
-    def __init__(self, color):
-        self.px = 0.0
-        self.py = 0.0
-        self.v = 0.0
-        self.angle = 0
-        self.inmune = 0
-        self.color = color
-        self.c = Canon(color)
-
-    def reset(self, mstp: MapStartPos):
-        self.v = 0.0
-        self.inmune = CANON_INMUNE_TIME
-
-        self.px = mstp.px
-        self.py = mstp.py
-        self.angle = mstp.angle
-        self.c.reset(mstp)
-    
-    def check_colision(self, fx, fy):
-        ## PX PY fx fy TR TR
-        a = fx - self.px
-        b = fy - self.py
-
-        if (a**2 + b**2) < (TANK_RADIUS*2)**2:
-            return True
-        return False
-
-
-class Player():
-    def __init__(self, mstp: MapStartPos, playerColor):
-        self.active = True
-        self.t = Tank(playerColor)
-        self.score = 0
-        self.mstp = mstp
-
-    def reset(self):
-        self.score = 0
-        self.active = True
-        self.reset_tank()
-
-    def reset_tank(self):
-        self.t.reset(self.mstp)
-
-
-class Bullet():
-    def __init__(self, p: Player):
-        self.owner = p
-        self.del_b = False
-        self.px = p.t.px + (TANK_RADIUS+BULLET_RADIUS+1) * math.cos(p.t.c.angle)
-        self.py = p.t.py + (TANK_RADIUS+BULLET_RADIUS+1) * math.sin(p.t.c.angle)
-        self.angle = p.t.c.angle
-
-    def check_colision(self, tx, ty):
-        a = tx - self.px
-        b = ty - self.py
-
-        if (a**2 + b**2) < (TANK_RADIUS + BULLET_RADIUS)**2:
-            return True
-        return False
-
-
-class Controller():
-    class Mode(Flag):
-        TANK   = auto()
-        CANON  = auto()
-        BOTH   = TANK | CANON
-
-    class Buttons(Enum):
-        UP    = auto()
-        DOWN  = auto()
-        LEFT  = auto()
-        RIGHT = auto()
-        A     = auto()
-        B     = auto()
-        SHOOT = auto()
-
     def __init__(self):
-        self.move_angle = 0
-        self.move_magnitude = 0
-        self.point_angle = 0
-        self.point_magnitude = 0
-        self.btns_d = {
-            self.Buttons.UP: False,
-            self.Buttons.DOWN: False,
-            self.Buttons.LEFT: False,
-            self.Buttons.RIGHT: False,
-            self.Buttons.A: False,
-            self.Buttons.B: False,
-            self.Buttons.SHOOT: False
-        }
+        self.players = []
+        self.bullets = []
+        self.controllers = []
 
-        self.player = None
-        self.mode = None
+        self.tank_img = None
+        self.canon_img = None
 
-    def reset(self):
-        self.move_magnitude = 0
-        for i in self.btns_d:
-            self.btns_d[i] = False
-    
-    def setPlayer(self, player: Player, mode: Mode):
-        self.player = player
-        self.mode = mode
+        #ENGINE GLOBALS
+        self.screen = None
+        self.clock = None
+        self.keyboardmouse = None
+        self.joysticks = {}
+        self.text_print = None
 
-class PyGameJoystick(Controller):
-    def __init__(self, driver):
-        super().__init__()
-        self.driver = driver
-        self.reset()
+        # FIXME: Start on Menu
+        self.state = self.State.GAME
 
-    def update(self):
-        if self.driver is None:
-            return
-        jtype = self.driver.get_name()
+    def start_up(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((800, 600))
+        pygame.display.set_caption("PyTankBattle")
+        self.clock = pygame.time.Clock()
+        self.text_print = TextPrint()
 
-        ljoy = [0,0]
-        rjoy = [0,0]
-        if jtype in ["Playstation 4 Controller", "Nintendo Switch Pro Controller"]:
-            ljoy = pygame.math.Vector2(driver.get_axis(0), driver.get_axis(1)).as_polar()
-            rjoy = pygame.math.Vector2(driver.get_axis(2), driver.get_axis(3)).as_polar()
-        elif jtype in ["Playstation 5 Controller", "Xbox 360 Controller", "Xbox One Controller"]:
-            ljoy = pygame.math.Vector2(driver.get_axis(0), driver.get_axis(1)).as_polar()
-            rjoy = pygame.math.Vector2(driver.get_axis(3), driver.get_axis(4)).as_polar()
+        self.tank_img = pygame.image.load(
+            files('pytankbattle.assets').joinpath('tank.png').open())
+        self.canon_img = pygame.image.load(
+            files('pytankbattle.assets').joinpath('canon.png').open())
 
-        self.move_magnitude = ljoy[0]
-        self.move_angle = ljoy[1] * PI / 180
+        self.keyboardmouse = PyGameKeyboardMouse()
+        self.controllers.append(self.keyboardmouse)
 
-        self.point_magnitude = rjoy[0]
-        self.point_angle = rjoy[1] * PI / 180
+        pcount = pygame.joystick.get_count()
 
-    def trigger(self, button):
-        if self.driver is None:
-            return
-        jtype = self.driver.get_name()
+        for i in range(pcount):
+            driver = pygame.joystick.Joystick(i)
+            driver.init()
+            joy = PyGameJoystick(driver)
 
-        if jtype in ["Playstation 4 Controller", "Nintendo Switch Pro Controller"]:
-            if button == 9:
-                self.btns_d[Controller.Buttons.SHOOT] = True
-            if button == 10:
-                self.btns_d[Controller.Buttons.SHOOT] = True
-        elif jtype in ["Playstation 5 Controller", "Xbox 360 Controller", "Xbox One Controller"]:
-            if button == 4:
-                self.btns_d[Controller.Buttons.SHOOT] = True
-            if button == 5:
-                self.btns_d[Controller.Buttons.SHOOT] = True
+            self.joysticks[driver.get_instance_id()] = joy 
+            self.controllers.append(joy)
 
-
-class PyGameKeyboardMouse(Controller):
-    def __init__(self):
-        super().__init__()
-
-    def update(self):
-        keys = pygame.key.get_pressed()
-
-        # UPDATE direction
-        if keys[pygame.K_w] and keys[pygame.K_s]:
-            self.move_magnitude = 0
-        elif keys[pygame.K_a] and keys[pygame.K_d]:
-            self.move_magnitude = 0
-        elif keys[pygame.K_w] and keys[pygame.K_a]:
-            self.move_angle = -3*PI/4
-            self.move_magnitude = 1
-        elif keys[pygame.K_w] and keys[pygame.K_d]:
-            self.move_angle = -PI/4
-            self.move_magnitude = 1
-        elif keys[pygame.K_s] and keys[pygame.K_a]:
-            self.move_angle = 3*PI/4
-            self.move_magnitude = 1
-        elif keys[pygame.K_s] and keys[pygame.K_d]:
-            self.move_angle = PI/4
-            self.move_magnitude = 1
-        elif keys[pygame.K_w]:
-            self.move_angle = -PI/2
-            self.move_magnitude = 1
-        elif keys[pygame.K_s]:
-            self.move_angle = PI/2
-            self.move_magnitude = 1
-        elif keys[pygame.K_a]:
-            self.move_angle = PI
-            self.move_magnitude = 1
-        elif keys[pygame.K_d]:
-            self.move_angle = 0
-            self.move_magnitude = 1
-
-        # UPDATE canon direction
-        if self.player is None:
-            return
-        
-        mxpos = pygame.mouse.get_pos()
-        self.cx = max(0, min(WIDTH, mxpos[0] - SCREEN_MOVE_X))
-        self.cy = max(0, min(HEIGHT, mxpos[1] - SCREEN_MOVE_Y))
-
-        #FIXME if mouse over tank, mag 0
-        self.point_magnitude = 1
-        self.point_angle = math.atan2(  self.cy - self.player.t.py, self.cx - (self.player.t.px) )
-
-    def trigger(self, event_type, button):
-        if event_type == pygame.KEYDOWN:
-            pass
-
-        if event_type == pygame.MOUSEBUTTONDOWN:
-            if button == 1 or button == 3:
-                self.btns_d[Controller.Buttons.SHOOT] = True
-
-#### HEADER END ####
-players = []
-bullets = []
-controllers = []
-
-tank_img = None
-canon_img = None
-
-#ENGINE GLOBALS
-screen = None
-clock = None
-keyboardmouse = None
-joysticks = {}
-
-def reset():
-    # Reset game
-    for p in players:
-        p.reset()
-
-def start_up():
-    global screen, clock, text_print, tank_img, canon_img, keyboardmouse
-
-    pygame.init()
-    screen = pygame.display.set_mode((800, 600))
-    pygame.display.set_caption("PyTankBattle")
-    clock = pygame.time.Clock()
-    text_print = TextPrint()
-
-    tank_img = pygame.image.load(
-        files('pytankbattle.assets').joinpath('tank.png').open())
-    canon_img = pygame.image.load(
-        files('pytankbattle.assets').joinpath('canon.png').open())
-
-    # FIXME: Initialize for MENU, not GAME
-
-    keyboardmouse = PyGameKeyboardMouse()
-    controllers.append(keyboardmouse)
-
-    # FIXME: Players are not initialized here
-    p = Player(mstps[0], playerColors[0])
-    keyboardmouse.setPlayer(p, Controller.Mode.BOTH)
-    players.append(p)
-
-    pcount = pygame.joystick.get_count()
-
-    for i in range(pcount):
-        driver = pygame.joystick.Joystick(i)
-        driver.init()
-        joy = PyGameJoystick(driver)
-
-        joysticks[driver.get_instance_id()] = joy 
-        controllers.append(joy)
-
+        # FIXME: Prepare for Menu, not Game
         # FIXME: Players are not initialized here
-        pi = len(players)
-        p = Player(mstps[pi], playerColors[pi])
-        joy.setPlayer(p, Controller.Mode.BOTH) 
-        players.append(p)
+        for c in self.controllers:
+            pi = len(self.players)
+            p = Player(self.mstps[pi], self.playerColors[pi])
+            c.setPlayer(p, Controller.Mode.BOTH) 
+            self.players.append(p)
 
-    reset()
+        ## Fill rest of players
+        #for pi in range(len(self.players), 8):
+        #    p = Player(self.mstps[pi], self.playerColors[pi])
+        #    self.players.append(p)
 
-def scan_pads(status):
-    # Query keyboard for this frame
-    keyboardmouse.reset()
-    keyboardmouse.update()
+        for p in self.players:
+            p.reset()
 
-    # Query joysticks for this frame
-    for i in joysticks:
-        joy = joysticks[i]
-        joy.reset()
-        joy.update()
-    
-    # Poll for events
-    for event in pygame.event.get():
-        # pygame.QUIT event means the user clicked X to close your window
-        if event.type == pygame.QUIT:
-            return GameStatus.QUIT
+    def scan_pads(self):
+        # Query keyboard for this frame
+        self.keyboardmouse.reset()
+        self.keyboardmouse.update()
 
-        if event.type == pygame.JOYBUTTONDOWN:
-            joy = joysticks[event.instance_id]
-            joy.trigger(event.button)
-
-        if event.type == pygame.KEYDOWN:
-            keyboardmouse.trigger(pygame.KEYDOWN, event.key)
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            keyboardmouse.trigger(pygame.MOUSEBUTTONDOWN, event.button)
-
-        # TODO: Handle adding players on menu
-        if event.type == pygame.JOYDEVICEADDED:
-            joy = pygame.joystick.Joystick(event.device_index)
-            if joy.get_instance_id() in joysticks:
-                joysticks[joy.get_instance_id()].driver = joy
-
-        # TODO: Handle removing players on menu
-        if event.type == pygame.JOYDEVICEREMOVED:
-            if event.instance_id in joysticks:
-                joysticks[event.instance_id].driver = None
-    
-    return status
-
-def menu():
-    # TODO: Render menu
-    for i in range(4):
-        # TODO: Control player color
-        # TODO: Control active player
-        # TODO: Draw tank and colors
-        pass
-
-    # TODO: Render text
-
-    # TODO: Only start if there are at least 2 players
-    if False:
-        return GameStatus.GAME
-
-    # TODO: Quit game on exit
-    if False:
-        return GameStatus.QUIT
-
-    return GameStatus.MENU
-
-#/************************* Game *************************
-def update_ps():
-    for CD in controllers:
-        p = CD.player
-
-        if Controller.Mode.TANK in CD.mode:
-            # Set movement
-            if CD.move_magnitude > .3:
-                p.t.angle = CD.move_angle
-                p.t.v = TANK_MAX_SPEED * CD.move_magnitude
-            else:
-                p.t.v = 0
-
-        if Controller.Mode.CANON in CD.mode:
-            # Aim canon
-            if CD.point_magnitude > .3:
-                p.t.c.angle = CD.point_angle
-
-        # Fire bullets
-        if CD.btns_d[Controller.Buttons.SHOOT]:
-            if p.t.c.bullets > 0 and len(bullets) < MAX_BULLETS:
-                bullets.append(Bullet(p))
-                p.t.c.bullets -= 1
-                p.t.c.reload += CANON_RELOAD_TIME
-
-    for p in players:
-        # Update counters
-        if p.t.c.reload > 0:
-            p.t.c.reload -= 1
-            if p.t.c.reload % CANON_RELOAD_TIME == 0:
-                p.t.c.bullets += 1
+        # Query joysticks for this frame
+        for i in self.joysticks:
+            joy = joysticks[i]
+            joy.reset()
+            joy.update()
         
-        if p.t.inmune > 0:
-            p.t.inmune -= 1
+        # Poll for events
+        for event in pygame.event.get():
+            # pygame.QUIT event means the user clicked X to close your window
+            if event.type == pygame.QUIT:
+                self.state = self.State.QUIT
 
-        # Update physics
-        fx = ( p.t.px + p.t.v*math.cos(p.t.angle) )
-        fy = ( p.t.py + p.t.v*math.sin(p.t.angle) )
+            if event.type == pygame.JOYBUTTONDOWN:
+                joy = self.joysticks[event.instance_id]
+                joy.trigger(event.button)
 
+            if event.type == pygame.KEYDOWN:
+                self.keyboardmouse.trigger(pygame.KEYDOWN, event.key)
 
-        if not (fx > TANK_RADIUS and fx < WIDTH - TANK_RADIUS ):
-            fx = p.t.px
-            fy = p.t.py
-            p.t.v = 0
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.keyboardmouse.trigger(pygame.MOUSEBUTTONDOWN, event.button)
 
-        if not (fy > TANK_RADIUS and fy < HEIGHT - TANK_RADIUS ):
-            fx = p.t.px
-            fy = p.t.py
-            p.t.v = 0
+            # TODO: Handle adding players on menu
+            if event.type == pygame.JOYDEVICEADDED:
+                joy = pygame.joystick.Joystick(event.device_index)
+                if joy.get_instance_id() in self.joysticks:
+                    self.joysticks[joy.get_instance_id()].driver = joy
 
-        for op in players:
-            if op == p:
-                continue
+            # TODO: Handle removing players on menu
+            if event.type == pygame.JOYDEVICEREMOVED:
+                if event.instance_id in self.joysticks:
+                    self.joysticks[event.instance_id].driver = None
+        
+    def update_game(self):
+        ret = self.state
 
-            if op.active and p.t.inmune == 0:
-                if op.t.check_colision(fx, fy):
-                    fx = p.t.px
-                    fy = p.t.py
-                    p.t.v = 0
-                    
-        p.t.px = fx
-        p.t.py = fy
+        if self.state == self.State.PAUSE:
+            ret = pause(self)
+        elif self.state == self.State.MENU:
+            ret = menu(self)
+        elif self.state == self.State.GAME:
+            ret = game(self)
+        elif self.state == self.State.CREDITS:
+            ret = credits(self)
+        else:
+            ret = self.State.QUIT
+        
+        pygame.display.flip()
+        self.clock.tick(30)
 
-def update_bs():
-
-    dflag = False
-
-    for b in bullets:
-        # Update position
-        b.px = ( b.px + BULLET_SPEED*math.cos(b.angle) )
-        b.py = ( b.py + BULLET_SPEED*math.sin(b.angle) )
-
-        # Check colisions
-        for op in players:
-            if op.active and op != b.owner and op.t.inmune == 0 :
-                if b.check_colision( op.t.px, op.t.py):
-                    b.owner.score += 1
-                    op.reset_tank()
-                    b.del_b = True
-                    dflag = True
-
-        # Check for walls
-        if b.px < 0 or b.px > WIDTH or b.py < 0 or b.py > HEIGHT:
-            b.del_b = True
-            dflag = True
-
-    if dflag:
-        j = 0
-        while j < len(bullets):
-            if bullets[j].del_b:
-                del bullets[j]
-                j -= 1
-            j += 1
-
-def draw():
-    text_print.reset()
-
-    # Draw field
-    pygame.draw.rect(
-        screen,
-        (255,255,255),
-        pygame.Rect(SCREEN_MOVE_X, SCREEN_MOVE_Y, WIDTH, HEIGHT),
-        3)
-    # Draw players
-    for p in players:
-        if p.t.inmune % 15 < 8:
-            rotated_tank = pygame.transform.rotate(
-                tank_img, -p.t.angle * 180 / PI)
-            rotated_tank.fill(p.t.color, special_flags=pygame.BLEND_ADD)
-            rotated_canon = pygame.transform.rotate(
-                canon_img, -p.t.c.angle * 180 / PI)
-            rotated_canon.fill(p.t.c.color, special_flags=pygame.BLEND_ADD)
-            screen.blit(
-                rotated_tank, 
-                (SCREEN_MOVE_X + p.t.px - rotated_tank.get_width() /2, 
-                SCREEN_MOVE_Y + p.t.py - rotated_tank.get_height() /2))
-            screen.blit(
-                rotated_canon, 
-                (SCREEN_MOVE_X + p.t.px - rotated_canon.get_width() /2, 
-                SCREEN_MOVE_Y + p.t.py - rotated_canon.get_height() /2))
-
-    # Draw bullets
-    for b in bullets:
-        pygame.draw.rect(
-            screen,
-            (255,255,255),
-            pygame.Rect(
-                SCREEN_MOVE_X + b.px, 
-                SCREEN_MOVE_Y + b.py, 
-                5, 5),
-            1)
-
-    # Draw text
-    text_print.tprint(screen, "Tanks")
-    text_print.tprint(screen, "")
-
-    i = 1
-    for p in players:
-        text_print.tprint(screen, f"  Player {i}")
-        text_print.tprint(screen, f"    bullets   : {p.t.c.bullets}")
-        text_print.tprint(screen, f"    score     : {p.score}")
-        text_print.tprint(screen, "")
-        i += 1
-
-def game():
-    update_ps()
-    update_bs()
-    draw()
-
-    # TODO: Pause control
-    if False:
-        return GameStatus.PAUSE
-    return GameStatus.GAME
-
-def pause():
-    draw()
-    # TODO: Pause text
-
-    # TODO: Quit game control
-    if False:
-        return GameStatus.CREDITS
-
-    # TODO: Return to game control
-    if False:
-        return GameStatus.GAME
-    return GameStatus.PAUSE
-
-def credits():
-    # TODO: Lots of Text!!
-    pass
-
-def update_game(status: GameStatus) -> GameStatus:
-    screen.fill("black")
-    ret = status
-
-    if status == GameStatus.PAUSE:
-        ret = pause()
-    elif status == GameStatus.MENU:
-        ret = menu()
-    elif status == GameStatus.GAME:
-        ret = game()
-    elif status == GameStatus.CREDITS:
-        ret = credits()
-    else:
-        ret = GameStatus.QUIT
+        self.state = ret
     
-    pygame.display.flip()
-    clock.tick(30)
+    def stop(self):
+        pygame.quit()
+    
+    def run(self):
+        self.start_up()
 
-    return ret
+        if len(self.players) <= 0:
+            print("not enough players")
+            self.state = self.State.QUIT
+
+        while self.state != self.State.QUIT:
+            self.scan_pads()
+            self.update_game()
+
+        self.stop()
 
 def main():
     # FIXME: START AT MENU
-    status = GameStatus.GAME
 
-    start_up()
+    game = PyTankBattle()
+    game.run()
 
-    if len(players) <= 0:
-        print("not enough players")
-        status = GameStatus.QUIT
-
-    while status != GameStatus.QUIT:
-        status = scan_pads(status)
-        status = update_game(status)
-
-    pygame.quit()
 
 if __name__ == "__main__":
     main()
