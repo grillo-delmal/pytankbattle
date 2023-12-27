@@ -78,6 +78,17 @@ mstps = [
     MapStartPos(        50, HEIGHT /  2,     0),
     ]
 
+playerColors = [
+    (0x33, 0xBB, 0x33),
+    (0xBB, 0x33, 0x33),
+    (0x33, 0x33, 0xBB),
+    (0x33, 0xBB, 0xBB),
+    (0xBB, 0xBB, 0x33),
+    (0xBB, 0x33, 0xBB),
+    (0x33, 0x33, 0x33),
+    (0xBB, 0xBB, 0xBB),
+]
+
 class Controller():
     def __init__(self):
         self.move_angle = 0
@@ -143,11 +154,11 @@ class PyGameJoystick(Controller):
 
 
 class Canon():
-    def __init__(self):
+    def __init__(self, color):
         self.angle = 0.0
         self.bullets = 5
         self.reload = 0
-        self.color = "#000000"
+        self.color = color
 
     def reset(self, mstp: MapStartPos):
         self.bullets = 5
@@ -157,14 +168,14 @@ class Canon():
 
 
 class Tank():
-    def __init__(self):
+    def __init__(self, color):
         self.px = 0.0
         self.py = 0.0
         self.v = 0.0
         self.angle = 0
         self.inmune = 0
-        self.color = "#000000"
-        self.c = Canon()
+        self.color = color
+        self.c = Canon(color)
 
     def reset(self, mstp: MapStartPos):
         self.v = 0.0
@@ -186,9 +197,9 @@ class Tank():
 
 
 class Player():
-    def __init__(self, mstp: MapStartPos):
+    def __init__(self, mstp: MapStartPos, playerColor):
         self.active = True
-        self.t = Tank()
+        self.t = Tank(playerColor)
         self.CD = None
         self.score = 0
         self.mstp = mstp
@@ -252,8 +263,6 @@ def start_up():
 
     # FIXME: Initialize for MENU, not GAME
     pcount = pygame.joystick.get_count()
-    if pcount == 0:
-        return
 
     for i in range(pcount):
         joy = {
@@ -263,7 +272,7 @@ def start_up():
         joy["driver"].init()
         joysticks[joy["driver"].get_instance_id()] = joy 
 
-        p = Player(mstps[i])
+        p = Player(mstps[i], playerColors[i])
         p.CD = joy["controller"]
         players.append(p)
 
@@ -428,8 +437,10 @@ def draw():
         if p.t.inmune % 15 < 8:
             rotated_tank = pygame.transform.rotate(
                 tank_img, -p.t.angle * 180 / PI)
+            rotated_tank.fill(p.t.color, special_flags=pygame.BLEND_ADD)
             rotated_canon = pygame.transform.rotate(
                 canon_img, -p.t.c.angle * 180 / PI)
+            rotated_canon.fill(p.t.c.color, special_flags=pygame.BLEND_ADD)
             screen.blit(
                 rotated_tank, 
                 (SCREEN_MOVE_X + p.t.px - rotated_tank.get_width() /2, 
