@@ -61,6 +61,9 @@ MAX_BULLETS         = 100
 HEIGHT              = 300
 WIDTH               = 500
 
+SCREEN_MOVE_X       = 70 + 150
+SCREEN_MOVE_Y       = 60 + 60
+
 class MapStartPos():
     def __init__(self, px, py, angle):
         self.px = px
@@ -94,7 +97,7 @@ class Controller():
         self.move_angle = 0
         self.move_magnitude = 0
         self.point_angle = 0
-        self.move_magnitude = 0
+        self.point_magnitude = 0
         self.btns_d = {
             "up": False,
             "down": False,
@@ -105,17 +108,17 @@ class Controller():
             "shoot": False
         }
 
-
-class PyGameJoystick(Controller):
-    def __init__(self):
-        super().__init__()
-        self.reset()
-    
     def reset(self):
         self.move_magnitude = 0
         for i in self.btns_d:
             self.btns_d[i] = False
     
+
+class PyGameJoystick(Controller):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+
     def update(self, driver):
         if driver is None:
             return
@@ -230,6 +233,63 @@ class Bullet():
         return False
 
 
+class PyGameKeyboardMouse(Controller):
+    def __init__(self):
+        super().__init__()
+
+    def update(self, player: Player):
+        keys = pygame.key.get_pressed()
+
+        # UPDATE direction
+        if keys[pygame.K_w] and keys[pygame.K_s]:
+            self.move_magnitude = 0
+        elif keys[pygame.K_a] and keys[pygame.K_d]:
+            self.move_magnitude = 0
+        elif keys[pygame.K_w] and keys[pygame.K_a]:
+            self.move_angle = -3*PI/4
+            self.move_magnitude = 1
+        elif keys[pygame.K_w] and keys[pygame.K_d]:
+            self.move_angle = -PI/4
+            self.move_magnitude = 1
+        elif keys[pygame.K_s] and keys[pygame.K_a]:
+            self.move_angle = 3*PI/4
+            self.move_magnitude = 1
+        elif keys[pygame.K_s] and keys[pygame.K_d]:
+            self.move_angle = PI/4
+            self.move_magnitude = 1
+        elif keys[pygame.K_w]:
+            self.move_angle = -PI/2
+            self.move_magnitude = 1
+        elif keys[pygame.K_s]:
+            self.move_angle = PI/2
+            self.move_magnitude = 1
+        elif keys[pygame.K_a]:
+            self.move_angle = PI
+            self.move_magnitude = 1
+        elif keys[pygame.K_d]:
+            self.move_angle = 0
+            self.move_magnitude = 1
+
+        # UPDATE canon direction
+        if player is None:
+            return
+        
+        mxpos = pygame.mouse.get_pos()
+        self.cx = max(0, min(WIDTH, mxpos[0] - SCREEN_MOVE_X))
+        self.cy = max(0, min(HEIGHT, mxpos[1] - SCREEN_MOVE_Y))
+
+        #FIXME if mouse over tank, mag 0
+        self.point_magnitude = 1
+        self.point_angle = math.atan2(  self.cy - player.t.py, self.cx - (player.t.px) )
+
+    def trigger(self, event_type, button):
+        if event_type == pygame.KEYDOWN:
+            pass
+
+        if event_type == pygame.MOUSEBUTTONDOWN:
+            if button == 1 or button == 3:
+                self.btns_d["shoot"] = True
+
 #### HEADER END ####
 players = []
 bullets = []
@@ -240,6 +300,7 @@ canon_img = None
 #ENGINE GLOBALS
 screen = None
 clock = None
+keyboardmouse = None
 joysticks = {}
 
 def reset():
@@ -248,7 +309,7 @@ def reset():
         p.reset()
 
 def start_up():
-    global screen, clock, text_print, tank_img, canon_img
+    global screen, clock, text_print, tank_img, canon_img, keyboardmouse
 
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
@@ -262,6 +323,16 @@ def start_up():
         files('pytankbattle.assets').joinpath('canon.png').open())
 
     # FIXME: Initialize for MENU, not GAME
+
+    keyboardmouse = {
+        "player": None,
+        "controller": PyGameKeyboardMouse()
+        }
+    p = Player(mstps[0], playerColors[0])
+    p.CD = keyboardmouse["controller"]
+    keyboardmouse["player"] = p
+    players.append(p)
+
     pcount = pygame.joystick.get_count()
 
     for i in range(pcount):
@@ -272,13 +343,18 @@ def start_up():
         joy["driver"].init()
         joysticks[joy["driver"].get_instance_id()] = joy 
 
-        p = Player(mstps[i], playerColors[i])
+        pi = len(players)
+
+        p = Player(mstps[pi], playerColors[pi])
         p.CD = joy["controller"]
         players.append(p)
 
     reset()
 
 def scan_pads(status):
+    # Query keyboard for this frame
+    keyboardmouse["controller"].reset()
+    keyboardmouse["controller"].update(keyboardmouse["player"])
 
     # Query joysticks for this frame
     for i in joysticks:
@@ -295,6 +371,12 @@ def scan_pads(status):
         if event.type == pygame.JOYBUTTONDOWN:
             joy = joysticks[event.instance_id]
             joy["controller"].trigger(joy["driver"], event.button)
+
+        if event.type == pygame.KEYDOWN:
+            keyboardmouse["controller"].trigger(pygame.KEYDOWN, event.key)
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            keyboardmouse["controller"].trigger(pygame.MOUSEBUTTONDOWN, event.button)
 
         # TODO: Handle adding players on menu
         if event.type == pygame.JOYDEVICEADDED:
@@ -332,8 +414,7 @@ def menu():
 
 #/************************* Game *************************
 def update_p(p: Player):
-    # TODO: Implement pointer controller
-    if isinstance(p.CD, PyGameJoystick):
+    if isinstance(p.CD, Controller):
         # Set movement
         if p.CD.move_magnitude > .3:
             p.t.angle = p.CD.move_angle
@@ -422,9 +503,6 @@ def update_bs():
 
 def draw():
     text_print.reset()
-
-    SCREEN_MOVE_X       = 70 + 150
-    SCREEN_MOVE_Y       = 60 + 60
 
     # Draw field
     pygame.draw.rect(
