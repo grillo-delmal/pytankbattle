@@ -1,13 +1,19 @@
 
-def pause():
-    # TODO: Pause text
+from .scene import Scene
 
-    # TODO: Quit game control
-    if False:
-        return GameStatus.CREDITS
+class Pause(Scene):
+    def __init__(self, data, engine):
+        super().__init__(data, engine)
 
-    # TODO: Return to game control
-    if False:
-        return GameStatus.GAME
-    return GameStatus.PAUSE
+    def run(self):
+        # TODO: Pause text
+
+        # TODO: Quit game control
+        if False:
+            return GameStatus.CREDITS
+
+        # TODO: Return to game control
+        if False:
+            return GameStatus.GAME
+        return GameStatus.PAUSE
 

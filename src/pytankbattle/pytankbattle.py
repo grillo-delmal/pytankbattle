@@ -19,12 +19,31 @@ from .utils import *
 
 
 class PyTankBattle():
-    class State(Enum):
-        PAUSE   = auto()
-        MENU    = auto()
-        GAME    = auto()
-        CREDITS = auto()
-        QUIT    = auto()
+
+    class Data():
+        class State(Enum):
+            PAUSE   = auto()
+            MENU    = auto()
+            GAME    = auto()
+            CREDITS = auto()
+            QUIT    = auto()
+
+        def __init__(self):
+            self.players = []
+            self.bullets = []
+            self.controllers = []
+            
+
+    class Engine():
+        def __init__(self):
+            self.screen = None
+            self.clock = None
+            self.keyboardmouse = None
+            self.joysticks = {}
+            self.text_print = None
+
+            self.tank_img = None
+            self.canon_img = None
 
     mstps = [ 
         MapStartPos(        50,          50,    PI/4),
@@ -49,37 +68,29 @@ class PyTankBattle():
     ]
 
     def __init__(self):
-        self.players = []
-        self.bullets = []
-        self.controllers = []
-
-        self.tank_img = None
-        self.canon_img = None
-
-        #ENGINE GLOBALS
-        self.screen = None
-        self.clock = None
-        self.keyboardmouse = None
-        self.joysticks = {}
-        self.text_print = None
+        self.data = self.Data()
+        self.engine = self.Engine()
+        self.scenes = {
+            self.Data.State.GAME: Game(self.data, self.engine)
+        }
 
         # FIXME: Start on Menu
-        self.state = self.State.GAME
+        self.data.state = self.Data.State.GAME
 
     def start_up(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
+        self.engine.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("PyTankBattle")
-        self.clock = pygame.time.Clock()
-        self.text_print = TextPrint()
+        self.engine.clock = pygame.time.Clock()
+        self.engine.text_print = TextPrint()
 
-        self.tank_img = pygame.image.load(
+        self.engine.tank_img = pygame.image.load(
             files('pytankbattle.assets').joinpath('tank.png').open())
-        self.canon_img = pygame.image.load(
+        self.engine.canon_img = pygame.image.load(
             files('pytankbattle.assets').joinpath('canon.png').open())
 
-        self.keyboardmouse = PyGameKeyboardMouse()
-        self.controllers.append(self.keyboardmouse)
+        self.engine.keyboardmouse = PyGameKeyboardMouse()
+        self.data.controllers.append(self.engine.keyboardmouse)
 
         pcount = pygame.joystick.get_count()
 
@@ -88,33 +99,33 @@ class PyTankBattle():
             driver.init()
             joy = PyGameJoystick(driver)
 
-            self.joysticks[driver.get_instance_id()] = joy 
-            self.controllers.append(joy)
+            self.engine.joysticks[driver.get_instance_id()] = joy 
+            self.data.controllers.append(joy)
 
         # FIXME: Prepare for Menu, not Game
         # FIXME: Players are not initialized here
-        for c in self.controllers:
-            pi = len(self.players)
+        for c in self.data.controllers:
+            pi = len(self.data.players)
             p = Player(self.mstps[pi], self.playerColors[pi])
             c.setPlayer(p, Controller.Mode.BOTH) 
-            self.players.append(p)
+            self.data.players.append(p)
 
         ## Fill rest of players
-        #for pi in range(len(self.players), 8):
+        #for pi in range(len(self.data.players), 8):
         #    p = Player(self.mstps[pi], self.playerColors[pi])
-        #    self.players.append(p)
+        #    self.data.players.append(p)
 
-        for p in self.players:
+        for p in self.data.players:
             p.reset()
 
     def scan_pads(self):
         # Query keyboard for this frame
-        self.keyboardmouse.reset()
-        self.keyboardmouse.update()
+        self.engine.keyboardmouse.reset()
+        self.engine.keyboardmouse.update()
 
         # Query joysticks for this frame
-        for i in self.joysticks:
-            joy = joysticks[i]
+        for i in self.engine.joysticks:
+            joy = self.engine.joysticks[i]
             joy.reset()
             joy.update()
         
@@ -122,47 +133,39 @@ class PyTankBattle():
         for event in pygame.event.get():
             # pygame.QUIT event means the user clicked X to close your window
             if event.type == pygame.QUIT:
-                self.state = self.State.QUIT
+                self.data.state = self.Data.State.QUIT
 
             if event.type == pygame.JOYBUTTONDOWN:
-                joy = self.joysticks[event.instance_id]
+                joy = self.engine.joysticks[event.instance_id]
                 joy.trigger(event.button)
 
             if event.type == pygame.KEYDOWN:
-                self.keyboardmouse.trigger(pygame.KEYDOWN, event.key)
+                self.engine.keyboardmouse.trigger(pygame.KEYDOWN, event.key)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.keyboardmouse.trigger(pygame.MOUSEBUTTONDOWN, event.button)
+                self.engine.keyboardmouse.trigger(pygame.MOUSEBUTTONDOWN, event.button)
 
             # TODO: Handle adding players on menu
             if event.type == pygame.JOYDEVICEADDED:
                 joy = pygame.joystick.Joystick(event.device_index)
-                if joy.get_instance_id() in self.joysticks:
-                    self.joysticks[joy.get_instance_id()].driver = joy
+                if joy.get_instance_id() in self.engine.joysticks:
+                    self.engine.joysticks[joy.get_instance_id()].driver = joy
 
             # TODO: Handle removing players on menu
             if event.type == pygame.JOYDEVICEREMOVED:
-                if event.instance_id in self.joysticks:
-                    self.joysticks[event.instance_id].driver = None
+                if event.instance_id in self.engine.joysticks:
+                    self.engine.joysticks[event.instance_id].driver = None
         
     def update_game(self):
-        ret = self.state
+        ret = self.data.state
 
-        if self.state == self.State.PAUSE:
-            ret = pause(self)
-        elif self.state == self.State.MENU:
-            ret = menu(self)
-        elif self.state == self.State.GAME:
-            ret = game(self)
-        elif self.state == self.State.CREDITS:
-            ret = credits(self)
-        else:
-            ret = self.State.QUIT
+        if self.data.state != self.Data.State.QUIT:
+            ret = self.scenes[self.data.state].run()
         
         pygame.display.flip()
-        self.clock.tick(30)
+        self.engine.clock.tick(30)
 
-        self.state = ret
+        self.data.state = ret
     
     def stop(self):
         pygame.quit()
@@ -170,11 +173,11 @@ class PyTankBattle():
     def run(self):
         self.start_up()
 
-        if len(self.players) <= 0:
+        if len(self.data.players) <= 0:
             print("not enough players")
-            self.state = self.State.QUIT
+            self.data.state = self.Data.State.QUIT
 
-        while self.state != self.State.QUIT:
+        while self.data.state != self.Data.State.QUIT:
             self.scan_pads()
             self.update_game()
 
