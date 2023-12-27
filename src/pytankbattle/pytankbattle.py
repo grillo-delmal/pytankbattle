@@ -8,7 +8,7 @@ import pygame
 import math
 import os
 
-from enum import Enum, auto
+from enum import Enum, Flag, auto
 from importlib.resources import files
 
 #### HELPER ####
@@ -169,37 +169,59 @@ class Bullet():
 
 
 class Controller():
+    class Mode(Flag):
+        TANK   = auto()
+        CANON  = auto()
+        BOTH   = TANK | CANON
+
+    class Buttons(Enum):
+        UP    = auto()
+        DOWN  = auto()
+        LEFT  = auto()
+        RIGHT = auto()
+        A     = auto()
+        B     = auto()
+        START = auto()
+        SHOOT = auto()
+
     def __init__(self):
         self.move_angle = 0
         self.move_magnitude = 0
         self.point_angle = 0
         self.point_magnitude = 0
         self.btns_d = {
-            "up": False,
-            "down": False,
-            "left": False,
-            "right": False,
-            "a": False,
-            "b": False,
-            "start": False,
-            "shoot": False
+            self.Buttons.UP: False,
+            self.Buttons.DOWN: False,
+            self.Buttons.LEFT: False,
+            self.Buttons.RIGHT: False,
+            self.Buttons.A: False,
+            self.Buttons.B: False,
+            self.Buttons.START: False,
+            self.Buttons.SHOOT: False
         }
+
+        self.player = None
+        self.mode = None
 
     def reset(self):
         self.move_magnitude = 0
         for i in self.btns_d:
             self.btns_d[i] = False
     
+    def setPlayer(self, player: Player, mode: Mode):
+        self.player = player
+        self.mode = mode
 
 class PyGameJoystick(Controller):
-    def __init__(self):
+    def __init__(self, driver):
         super().__init__()
+        self.driver = driver
         self.reset()
 
-    def update(self, driver):
-        if driver is None:
+    def update(self):
+        if self.driver is None:
             return
-        jtype = driver.get_name()
+        jtype = self.driver.get_name()
 
         ljoy = [0,0]
         rjoy = [0,0]
@@ -216,28 +238,28 @@ class PyGameJoystick(Controller):
         self.point_magnitude = rjoy[0]
         self.point_angle = rjoy[1] * PI / 180
 
-    def trigger(self, driver, button):
-        if driver is None:
+    def trigger(self, button):
+        if self.driver is None:
             return
-        jtype = driver.get_name()
+        jtype = self.driver.get_name()
 
         if jtype in ["Playstation 4 Controller", "Nintendo Switch Pro Controller"]:
             if button == 9:
-                self.btns_d["shoot"] = True
+                self.btns_d[Controller.Buttons.SHOOT] = True
             if button == 10:
-                self.btns_d["shoot"] = True
+                self.btns_d[Controller.Buttons.SHOOT] = True
         elif jtype in ["Playstation 5 Controller", "Xbox 360 Controller", "Xbox One Controller"]:
             if button == 4:
-                self.btns_d["shoot"] = True
+                self.btns_d[Controller.Buttons.SHOOT] = True
             if button == 5:
-                self.btns_d["shoot"] = True
+                self.btns_d[Controller.Buttons.SHOOT] = True
 
 
 class PyGameKeyboardMouse(Controller):
     def __init__(self):
         super().__init__()
 
-    def update(self, player: Player):
+    def update(self):
         keys = pygame.key.get_pressed()
 
         # UPDATE direction
@@ -271,7 +293,7 @@ class PyGameKeyboardMouse(Controller):
             self.move_magnitude = 1
 
         # UPDATE canon direction
-        if player is None:
+        if self.player is None:
             return
         
         mxpos = pygame.mouse.get_pos()
@@ -280,7 +302,7 @@ class PyGameKeyboardMouse(Controller):
 
         #FIXME if mouse over tank, mag 0
         self.point_magnitude = 1
-        self.point_angle = math.atan2(  self.cy - player.t.py, self.cx - (player.t.px) )
+        self.point_angle = math.atan2(  self.cy - self.player.t.py, self.cx - (self.player.t.px) )
 
     def trigger(self, event_type, button):
         if event_type == pygame.KEYDOWN:
@@ -288,7 +310,7 @@ class PyGameKeyboardMouse(Controller):
 
         if event_type == pygame.MOUSEBUTTONDOWN:
             if button == 1 or button == 3:
-                self.btns_d["shoot"] = True
+                self.btns_d[Controller.Buttons.SHOOT] = True
 
 #### HEADER END ####
 players = []
@@ -325,47 +347,42 @@ def start_up():
 
     # FIXME: Initialize for MENU, not GAME
 
-    keyboardmouse = {
-        "player": None,
-        "controller": PyGameKeyboardMouse()
-        }
+    keyboardmouse = PyGameKeyboardMouse()
     controllers.append(keyboardmouse)
 
     # FIXME: Players are not initialized here
     p = Player(mstps[0], playerColors[0])
-    keyboardmouse["player"] = p
+    keyboardmouse.setPlayer(p, Controller.Mode.BOTH)
     players.append(p)
 
     pcount = pygame.joystick.get_count()
 
     for i in range(pcount):
-        joy = {
-            "driver": pygame.joystick.Joystick(i),
-            "player": None,
-            "controller": PyGameJoystick()
-        }
-        joy["driver"].init()
-        joysticks[joy["driver"].get_instance_id()] = joy 
+        driver = pygame.joystick.Joystick(i)
+        driver.init()
+        joy = PyGameJoystick(driver)
+
+        joysticks[driver.get_instance_id()] = joy 
         controllers.append(joy)
 
         # FIXME: Players are not initialized here
         pi = len(players)
         p = Player(mstps[pi], playerColors[pi])
-        joy["player"] = p
+        joy.setPlayer(p, Controller.Mode.BOTH) 
         players.append(p)
 
     reset()
 
 def scan_pads(status):
     # Query keyboard for this frame
-    keyboardmouse["controller"].reset()
-    keyboardmouse["controller"].update(keyboardmouse["player"])
+    keyboardmouse.reset()
+    keyboardmouse.update()
 
     # Query joysticks for this frame
     for i in joysticks:
         joy = joysticks[i]
-        joy["controller"].reset()
-        joy["controller"].update(joy["driver"])
+        joy.reset()
+        joy.update()
     
     # Poll for events
     for event in pygame.event.get():
@@ -375,24 +392,24 @@ def scan_pads(status):
 
         if event.type == pygame.JOYBUTTONDOWN:
             joy = joysticks[event.instance_id]
-            joy["controller"].trigger(joy["driver"], event.button)
+            joy.trigger(event.button)
 
         if event.type == pygame.KEYDOWN:
-            keyboardmouse["controller"].trigger(pygame.KEYDOWN, event.key)
+            keyboardmouse.trigger(pygame.KEYDOWN, event.key)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            keyboardmouse["controller"].trigger(pygame.MOUSEBUTTONDOWN, event.button)
+            keyboardmouse.trigger(pygame.MOUSEBUTTONDOWN, event.button)
 
         # TODO: Handle adding players on menu
         if event.type == pygame.JOYDEVICEADDED:
             joy = pygame.joystick.Joystick(event.device_index)
             if joy.get_instance_id() in joysticks:
-                joysticks[joy.get_instance_id()]["driver"] = joy
+                joysticks[joy.get_instance_id()].driver = joy
 
         # TODO: Handle removing players on menu
         if event.type == pygame.JOYDEVICEREMOVED:
             if event.instance_id in joysticks:
-                joysticks[event.instance_id]["driver"] = None
+                joysticks[event.instance_id].driver = None
     
     return status
 
@@ -418,23 +435,24 @@ def menu():
 
 #/************************* Game *************************
 def update_ps():
-    for c in controllers:
-        CD = c["controller"]
-        p = c["player"]
+    for CD in controllers:
+        p = CD.player
 
-        # Set movement
-        if CD.move_magnitude > .3:
-            p.t.angle = CD.move_angle
-            p.t.v = TANK_MAX_SPEED * CD.move_magnitude
-        else:
-            p.t.v = 0
+        if Controller.Mode.TANK in CD.mode:
+            # Set movement
+            if CD.move_magnitude > .3:
+                p.t.angle = CD.move_angle
+                p.t.v = TANK_MAX_SPEED * CD.move_magnitude
+            else:
+                p.t.v = 0
 
-        # Aim canon
-        if CD.point_magnitude > .3:
-            p.t.c.angle = CD.point_angle
+        if Controller.Mode.CANON in CD.mode:
+            # Aim canon
+            if CD.point_magnitude > .3:
+                p.t.c.angle = CD.point_angle
 
         # Fire bullets
-        if CD.btns_d["shoot"]:
+        if CD.btns_d[Controller.Buttons.SHOOT]:
             if p.t.c.bullets > 0 and len(bullets) < MAX_BULLETS:
                 bullets.append(Bullet(p))
                 p.t.c.bullets -= 1
