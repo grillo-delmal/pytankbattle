@@ -1,6 +1,7 @@
 import pygame
 
 from .controller import Controller
+from pytankbattle.utils.consts import PI
 
 class PyGameJoystick(Controller):
     def __init__(self, driver):
@@ -16,11 +17,11 @@ class PyGameJoystick(Controller):
         ljoy = [0,0]
         rjoy = [0,0]
         if jtype in ["Playstation 4 Controller", "Nintendo Switch Pro Controller"]:
-            ljoy = pygame.math.Vector2(driver.get_axis(0), driver.get_axis(1)).as_polar()
-            rjoy = pygame.math.Vector2(driver.get_axis(2), driver.get_axis(3)).as_polar()
+            ljoy = pygame.math.Vector2(self.driver.get_axis(0), self.driver.get_axis(1)).as_polar()
+            rjoy = pygame.math.Vector2(self.driver.get_axis(2), self.driver.get_axis(3)).as_polar()
         elif jtype in ["Playstation 5 Controller", "Xbox 360 Controller", "Xbox One Controller"]:
-            ljoy = pygame.math.Vector2(driver.get_axis(0), driver.get_axis(1)).as_polar()
-            rjoy = pygame.math.Vector2(driver.get_axis(3), driver.get_axis(4)).as_polar()
+            ljoy = pygame.math.Vector2(self.driver.get_axis(0), self.driver.get_axis(1)).as_polar()
+            rjoy = pygame.math.Vector2(self.driver.get_axis(3), self.driver.get_axis(4)).as_polar()
 
         self.move_magnitude = ljoy[0]
         self.move_angle = ljoy[1] * PI / 180
