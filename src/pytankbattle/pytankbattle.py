@@ -181,7 +181,6 @@ class Controller():
         RIGHT = auto()
         A     = auto()
         B     = auto()
-        START = auto()
         SHOOT = auto()
 
     def __init__(self):
@@ -196,7 +195,6 @@ class Controller():
             self.Buttons.RIGHT: False,
             self.Buttons.A: False,
             self.Buttons.B: False,
-            self.Buttons.START: False,
             self.Buttons.SHOOT: False
         }
 
