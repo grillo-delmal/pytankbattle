@@ -89,7 +89,7 @@ class PyTankBattle():
         #    self.data.players.append(p)
 
         # FIXME: Prepare Menu, not Game
-        self.scenes[self.Data.State.GAME] = GameScene(self.data, self.engine)
+        self.scenes[self.Data.State.GAME] = GameScene(self.engine, self.data)
         self.data.state = self.Data.State.GAME
 
     def scan_pads(self):

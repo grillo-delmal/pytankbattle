@@ -8,14 +8,16 @@ from ..utils.consts import *
 from .scene import Scene
 
 class GameScene(Scene):
-    def __init__(self, data, engine):
+    def __init__(self, engine, data):
         super().__init__()
-        self.data = data
         self.engine = engine
+        self.data = data
 
     def update_ps(self):
         for CD in self.data.controllers:
             p = CD.player
+            if p is None or CD.mode is None:
+                continue
 
             if Controller.Mode.TANK in CD.mode:
                 # Set movement
