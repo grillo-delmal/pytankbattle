@@ -7,9 +7,11 @@ from pytankbattle.utils.consts import *
 
 from .scene import Scene
 
-class Game(Scene):
+class GameScene(Scene):
     def __init__(self, data, engine):
-        super().__init__(data, engine)
+        super().__init__()
+        self.data = data
+        self.engine = engine
 
     def update_ps(self):
         for CD in self.data.controllers:

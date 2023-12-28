@@ -1,9 +1,9 @@
 
 from .scene import Scene
 
-class Menu(Scene):
-    def __init__(self, data, engine):
-        super().__init__(data, engine)
+class MenuScene(Scene):
+    def __init__(self):
+        super().__init__()
 
     def run(self):
         # TODO: Render menu

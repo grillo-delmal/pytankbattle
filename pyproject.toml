@@ -24,7 +24,7 @@ Homepage = "https://github.com/grillo-delmal/pytankbattle"
 Issues = "https://github.com/grillo-delmal/pytankbattle/issues"
 
 [project.gui-scripts]
-pytankbattle = "pytankbattle.pytankbattle:main"
+pytankbattle = "pytankbattle:main"
 
 [tool.setuptools.package-data]
 "pytankbattle.assets" = ["*.png"]

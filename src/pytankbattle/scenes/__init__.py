@@ -1,2 +1,2 @@
-from .game import Game
+from .gamescene import GameScene
 

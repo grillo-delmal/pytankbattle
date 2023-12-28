@@ -32,7 +32,8 @@ class PyTankBattle():
             self.players = []
             self.bullets = []
             self.controllers = []
-            
+
+            self.state = None
 
     class Engine():
         def __init__(self):
@@ -70,12 +71,7 @@ class PyTankBattle():
     def __init__(self):
         self.data = self.Data()
         self.engine = self.Engine()
-        self.scenes = {
-            self.Data.State.GAME: Game(self.data, self.engine)
-        }
-
-        # FIXME: Start on Menu
-        self.data.state = self.Data.State.GAME
+        self.scenes = {}
 
     def start_up(self):
         pygame.init()
@@ -102,7 +98,6 @@ class PyTankBattle():
             self.engine.joysticks[driver.get_instance_id()] = joy 
             self.data.controllers.append(joy)
 
-        # FIXME: Prepare for Menu, not Game
         # FIXME: Players are not initialized here
         for c in self.data.controllers:
             pi = len(self.data.players)
@@ -117,6 +112,10 @@ class PyTankBattle():
 
         for p in self.data.players:
             p.reset()
+
+        # FIXME: Prepare Menu, not Game
+        self.scenes[self.Data.State.GAME] = GameScene(self.data, self.engine)
+        self.data.state = self.Data.State.GAME
 
     def scan_pads(self):
         # Query keyboard for this frame
@@ -182,13 +181,3 @@ class PyTankBattle():
             self.update_game()
 
         self.stop()
-
-def main():
-    # FIXME: START AT MENU
-
-    game = PyTankBattle()
-    game.run()
-
-
-if __name__ == "__main__":
-    main()

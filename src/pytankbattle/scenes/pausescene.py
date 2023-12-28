@@ -1,9 +1,9 @@
 
 from .scene import Scene
 
-class Pause(Scene):
-    def __init__(self, data, engine):
-        super().__init__(data, engine)
+class PauseScene(Scene):
+    def __init__(self):
+        super().__init__()
 
     def run(self):
         # TODO: Pause text
