@@ -1,3 +1,2 @@
-from .mapstartpos import MapStartPos
-from .utils import TextPrint
+from .utils import TextPrint, playerColors
 from .consts import *

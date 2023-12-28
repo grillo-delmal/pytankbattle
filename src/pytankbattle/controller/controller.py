@@ -1,6 +1,6 @@
 
 from enum import Enum, Flag, auto
-from pytankbattle.entities import Player
+from ..entities import Player
 
 
 class Controller():

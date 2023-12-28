@@ -1,5 +1,5 @@
 import math
-from pytankbattle.utils.consts import *
+from ..utils.consts import *
 from .player import Player
 
 class Bullet():

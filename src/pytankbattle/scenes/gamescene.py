@@ -1,9 +1,9 @@
 import pygame
 import math
 
-from pytankbattle.controller import Controller
-from pytankbattle.entities import Bullet
-from pytankbattle.utils.consts import *
+from ..controller import Controller
+from ..entities import Bullet
+from ..utils.consts import *
 
 from .scene import Scene
 

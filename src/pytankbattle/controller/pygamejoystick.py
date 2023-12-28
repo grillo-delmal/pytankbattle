@@ -1,7 +1,7 @@
 import pygame
 
 from .controller import Controller
-from pytankbattle.utils.consts import PI
+from ..utils.consts import PI
 
 class PyGameJoystick(Controller):
     def __init__(self, driver):

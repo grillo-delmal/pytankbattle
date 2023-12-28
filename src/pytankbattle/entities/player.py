@@ -1,4 +1,4 @@
-from pytankbattle.utils import MapStartPos
+from ..map import MapStartPos
 from .tank import Tank
 
 

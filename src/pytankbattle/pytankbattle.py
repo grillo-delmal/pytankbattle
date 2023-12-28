@@ -46,28 +46,6 @@ class PyTankBattle():
             self.tank_img = None
             self.canon_img = None
 
-    mstps = [ 
-        MapStartPos(        50,          50,    PI/4),
-        MapStartPos(WIDTH - 50,          50,  3*PI/4),
-        MapStartPos(        50, HEIGHT - 50,   -PI/4),
-        MapStartPos(WIDTH - 50, HEIGHT - 50, -3*PI/4),
-        MapStartPos(WIDTH /  2,          50,    PI/2),
-        MapStartPos(WIDTH - 50, HEIGHT /  2,    PI),
-        MapStartPos(WIDTH /  2, HEIGHT - 50,   -PI/2),
-        MapStartPos(        50, HEIGHT /  2,     0),
-        ]
-
-    playerColors = [
-        (0x33, 0xBB, 0x33),
-        (0xBB, 0x33, 0x33),
-        (0x33, 0x33, 0xBB),
-        (0x33, 0xBB, 0xBB),
-        (0xBB, 0xBB, 0x33),
-        (0xBB, 0x33, 0xBB),
-        (0x33, 0x33, 0x33),
-        (0xBB, 0xBB, 0xBB),
-    ]
-
     def __init__(self):
         self.data = self.Data()
         self.engine = self.Engine()
@@ -99,19 +77,16 @@ class PyTankBattle():
             self.data.controllers.append(joy)
 
         # FIXME: Players are not initialized here
-        for c in self.data.controllers:
-            pi = len(self.data.players)
-            p = Player(self.mstps[pi], self.playerColors[pi])
-            c.setPlayer(p, Controller.Mode.BOTH) 
-            self.data.players.append(p)
+        #for c in self.data.controllers:
+        #    pi = len(self.data.players)
+        #    p = Player(self.mstps[pi], self.playerColors[pi])
+        #    c.setPlayer(p, Controller.Mode.BOTH) 
+        #    self.data.players.append(p)
 
         ## Fill rest of players
         #for pi in range(len(self.data.players), 8):
         #    p = Player(self.mstps[pi], self.playerColors[pi])
         #    self.data.players.append(p)
-
-        for p in self.data.players:
-            p.reset()
 
         # FIXME: Prepare Menu, not Game
         self.scenes[self.Data.State.GAME] = GameScene(self.data, self.engine)

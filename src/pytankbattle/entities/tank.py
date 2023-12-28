@@ -1,5 +1,5 @@
-from pytankbattle.utils import MapStartPos
-from pytankbattle.utils.consts import CANON_INMUNE_TIME, TANK_RADIUS
+from ..map import MapStartPos
+from ..utils.consts import CANON_INMUNE_TIME, TANK_RADIUS
 from .canon import Canon
 
 class Tank():

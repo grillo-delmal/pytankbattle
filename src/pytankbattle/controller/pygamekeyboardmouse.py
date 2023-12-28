@@ -2,7 +2,7 @@ import pygame
 import math
 
 from .controller import Controller
-from pytankbattle.utils.consts import WIDTH, HEIGHT, SCREEN_MOVE_X, SCREEN_MOVE_Y, PI
+from ..utils.consts import WIDTH, HEIGHT, SCREEN_MOVE_X, SCREEN_MOVE_Y, PI
 
 class PyGameKeyboardMouse(Controller):
     def __init__(self):
