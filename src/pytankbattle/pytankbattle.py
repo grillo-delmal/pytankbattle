@@ -89,8 +89,9 @@ class PyTankBattle():
         #    self.data.players.append(p)
 
         # FIXME: Prepare Menu, not Game
+        self.scenes[self.Data.State.MENU] = MenuScene(self.engine, self.data)
         self.scenes[self.Data.State.GAME] = GameScene(self.engine, self.data)
-        self.data.state = self.Data.State.GAME
+        self.data.state = self.Data.State.MENU
 
     def scan_pads(self):
         # Query keyboard for this frame
@@ -150,10 +151,6 @@ class PyTankBattle():
     
     def run(self):
         self.start_up()
-
-        if len(self.data.players) <= 0:
-            print("not enough players")
-            self.data.state = self.Data.State.QUIT
 
         while self.data.state != self.Data.State.QUIT:
             self.scan_pads()
