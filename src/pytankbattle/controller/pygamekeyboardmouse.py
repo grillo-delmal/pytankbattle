@@ -55,7 +55,18 @@ class PyGameKeyboardMouse(Controller):
 
     def trigger(self, event_type, button):
         if event_type == pygame.KEYDOWN:
-            pass
+            if button in (pygame.K_w, pygame.K_UP):
+                self.btns_d[Controller.Buttons.UP] = True
+            if button in (pygame.K_s, pygame.K_DOWN):
+                self.btns_d[Controller.Buttons.DOWN] = True
+            if button in (pygame.K_a, pygame.K_LEFT):
+                self.btns_d[Controller.Buttons.LEFT] = True
+            if button in (pygame.K_d, pygame.K_RIGHT):
+                self.btns_d[Controller.Buttons.RIGHT] = True
+            if button == pygame.K_RETURN:
+                self.btns_d[Controller.Buttons.A] = True
+            if button == pygame.K_BACKSPACE:
+                self.btns_d[Controller.Buttons.B] = True
 
         if event_type == pygame.MOUSEBUTTONDOWN:
             if button == 1 or button == 3:

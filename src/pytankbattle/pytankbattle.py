@@ -111,7 +111,11 @@ class PyTankBattle():
 
             if event.type == pygame.JOYBUTTONDOWN:
                 joy = self.engine.joysticks[event.instance_id]
-                joy.trigger(event.button)
+                joy.trigger(pygame.JOYBUTTONDOWN, event.button)
+
+            if event.type == pygame.JOYHATMOTION:
+                joy = self.engine.joysticks[event.instance_id]
+                joy.trigger(pygame.JOYHATMOTION, event.value)
 
             if event.type == pygame.KEYDOWN:
                 self.engine.keyboardmouse.trigger(pygame.KEYDOWN, event.key)
