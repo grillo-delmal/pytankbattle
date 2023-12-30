@@ -6,6 +6,7 @@ from ..entities import Player
 from ..utils import *
 from .scene import Scene
 
+import pygame
 
 class State(Enum):
     ADD_TANK = auto()
@@ -90,10 +91,13 @@ class MenuScene(Scene):
                 return
             p = Player(mstps[pi], playerColors[pi])
             self.players.append(p)
-            for c in self.controllers:
-                if c.player is None:
-                    c.setPlayer(p, Controller.Mode.BOTH)
-                    break
+            if cur.controller is None:
+                cur.controller.setPlayer(p, Controller.Mode.BOTH)
+            else:
+                for c in self.controllers:
+                    if c.player is None:
+                        c.setPlayer(p, Controller.Mode.BOTH)
+                        break
 
     def remove_tank(self, cur):
         if cur.controller.btns_d[Controller.Buttons.A]:
@@ -235,6 +239,244 @@ class MenuScene(Scene):
     def draw(self):
 
         self.engine.screen.fill("black")
+        font = pygame.font.Font(None, 64)
+        title_bmp = font.render(
+            "pyTankBattle", 
+            True, 
+            (255, 255, 255))
+        if len(self.cursors) == 0:
+            self.engine.screen.blit(
+                title_bmp,
+                (400 - title_bmp.get_width()/2, 250))
+            font = pygame.font.Font(None, 32)
+            text_bmp = font.render(
+                "Press the A / Enter button to continue", 
+                True, 
+                (255, 255, 255))
+            self.engine.screen.blit(
+                text_bmp,
+                (400 - text_bmp.get_width()/2, 350))
+            return
+
+        self.engine.screen.blit(
+            title_bmp,
+            (400 - title_bmp.get_width()/2, 50))
+        
+        # Draw buttons
+        def add_button(text, pos, size, active):
+            font = pygame.font.Font(None, 24)
+            pygame.draw.rect(
+                self.engine.screen,
+                (0x33,0x33,0x33) if not active else (0xBB,0xBB,0xBB),
+                pygame.Rect(
+                    pos, 
+                    size),
+                0)
+
+            text_bitmap = font.render(
+                    text, 
+                    True, 
+                    (255, 255, 255))
+            
+            self.engine.screen.blit(
+                text_bitmap,
+                (
+                    pos[0] + size[0]/2 - text_bitmap.get_width()/2, 
+                    pos[1] + size[1]/2 - text_bitmap.get_height()/2))
+
+        div = 800 / 6
+
+        add_button(
+            "Add Tank",
+            (div*1 - 120/2, 130), (120 , 50),
+            len([cur for cur in self.cursors if (
+                cur.pos == State.ADD_TANK)]) > 0)
+        add_button(
+            "Remove Tank",
+            (div*2 - 120/2, 130), (120 , 50),
+            len([cur for cur in self.cursors if (
+                cur.pos == State.REMOVE_TANK)]) > 0)
+        add_button(
+            "Tank Controller",
+            (div*3 - 120/2, 130), (120 , 50),
+            len([cur for cur in self.cursors if (
+                cur.pos == State.SELECT_TANK)]) > 0)
+        add_button(
+            "Tank Color",
+            (div*4 - 120/2, 130), (120 , 50),
+            len([cur for cur in self.cursors if (
+                cur.pos == State.SELECT_COLOR)]) > 0)
+        add_button(
+            "Start",
+            (div*5 - 120/2, 130), (120 , 50),
+            len([cur for cur in self.cursors if (
+                cur.pos == State.START)]) > 0)
+
+        pygame.draw.rect(
+            self.engine.screen,
+            (0,0,0,70),
+            pygame.Rect(100, 200, 600, 350),
+            0)
+        pygame.draw.rect(
+            self.engine.screen,
+            (255,255,255),
+            pygame.Rect(100, 200, 600, 350),
+            3)
+        
+        p_area = self.engine.screen.subsurface(
+            pygame.Rect(100, 200, 600, 350))
+        div = p_area.get_width() / (len(self.players) + 2)
+
+        pos = div * 2
+        pi = 0
+        for p in self.players:
+            # Draw tank
+            rotated_tank = pygame.transform.rotate(
+                self.engine.tank_img, -90)
+            rotated_tank.fill(p.t.color, special_flags=pygame.BLEND_ADD)
+            rotated_canon = pygame.transform.rotate(
+                self.engine.canon_img, -90)
+            rotated_canon.fill(p.t.c.color, special_flags=pygame.BLEND_ADD)
+            
+            p_area.blit(
+                rotated_tank, 
+                (pos - rotated_tank.get_width() /2, 30))
+            p_area.blit(
+                rotated_canon, 
+                (pos - rotated_canon.get_width() /2, 30))
+
+            # Draw color bars
+            color_cur = [
+                cur for cur in self.cursors if (
+                    cur.pos == State.SELECTING_COLOR) and
+                    cur.tank_i == pi]
+
+            if len(color_cur) > 0:
+
+                # Canon Color
+                canon_color_cur = [
+                    cur.color_i for cur in color_cur if (
+                        Controller.Mode.CANON in cur.color_t)]
+
+                pygame.draw.rect(
+                    p_area,
+                    (0xFF,0x33,0x33) if (
+                        0 in canon_color_cur
+                        ) else (0x55,0x33,0x33),
+                    pygame.Rect(
+                        pos - 13, 10, 
+                        6, 20 * p.t.c.color[0] / 255),
+                    0)
+                pygame.draw.rect(
+                    p_area,
+                    (0x33,0xFF,0x33) if (
+                        1 in canon_color_cur
+                        ) else (0x33,0x55,0x33),
+                    pygame.Rect(
+                        pos - 3, 10, 
+                        6, 20 * p.t.c.color[1] / 255),
+                    0)
+                pygame.draw.rect(
+                    p_area,
+                    (0x33,0x33,0xFF) if (
+                        2 in canon_color_cur
+                        ) else (0x33,0x33,0x55),
+                    pygame.Rect(
+                        pos + 6, 10, 
+                        6, 20 * p.t.c.color[2] / 255),
+                    0)
+
+                # Tank Color
+                tank_color_cur = [
+                    cur.color_i for cur in color_cur if (
+                        Controller.Mode.TANK in cur.color_t)]
+                pygame.draw.rect(
+                    p_area,
+                    (0xFF,0x33,0x33) if (
+                        0 in tank_color_cur
+                        ) else (0x55,0x33,0x33),
+                    pygame.Rect(
+                        pos - 13, 70, 
+                        6, 20 * p.t.color[0] / 255),
+                    0)
+                pygame.draw.rect(
+                    p_area,
+                    (0x33,0xFF,0x33) if (
+                        1 in tank_color_cur
+                        ) else (0x33,0x55,0x33),
+                    pygame.Rect(
+                        pos - 3, 70, 
+                        6, 20 * p.t.color[1] / 255),
+                    0)
+                pygame.draw.rect(
+                    p_area,
+                    (0x33,0x33,0xFF) if (
+                        2 in tank_color_cur
+                        ) else (0x33,0x33,0x55),
+                    pygame.Rect(
+                        pos + 6, 70, 
+                        6, 20 * p.t.color[2] / 255),
+                    0)
+
+            # Draw controller selector
+            ctrl_cur = [
+                cur.controller_i for cur in self.cursors if (
+                    cur.pos == State.SELECTING_TANK)]
+
+            posy = 90
+            ci = 0
+            for c in self.controllers:
+                if c.player == p and c.mode is not None:
+                    pygame.draw.rect(
+                        p_area,
+                        (0x33,0x33,0x33) if (
+                            ci not in ctrl_cur
+                            ) else (0xBB,0xBB,0xBB),
+                        pygame.Rect(
+                            pos - 13, posy, 
+                            26, 20),
+                        0)
+                else:
+                    pygame.draw.rect(
+                        p_area,
+                        (0x33,0x33,0x33) if (
+                            ci not in ctrl_cur
+                            ) else (0xBB,0xBB,0xBB),
+                        pygame.Rect(
+                            pos - 13, posy, 
+                            26, 20),
+                        1)
+                posy += 30
+                ci += 1
+
+            pos += div
+            pi += 1
+        
+        # Draw icons
+        if len(self.players) > 0:
+            ctrl_cur = [
+                cur.controller_i for cur in self.cursors if (
+                    cur.pos == State.SELECTING_TANK)]
+            posx = p_area.get_width() / (len(self.players) + 2)
+            posy = 90
+            ci = 0
+            for c in self.controllers:
+                ctrl_icon = c.cur_img.copy()
+                ctrl_icon.fill(
+                    playerColors[ci%8], special_flags=pygame.BLEND_ADD)
+                if ci not in ctrl_cur:
+                    ctrl_icon.fill(
+                    (0x55,0x55,0x55), special_flags=pygame.BLEND_SUB)
+                p_area.blit(
+                    ctrl_icon,
+                    (posx, posy))
+
+                posy += 30
+                ci += 1
+
+        #self.debug()
+
+    def debug(self):
 
         self.engine.text_print.reset()
         
@@ -285,6 +527,13 @@ class MenuScene(Scene):
                 if self.flow[cur.pos].b is not None:
                     cur.pos = self.flow[cur.pos].b
                 else:
+                    if len(self.cursors) == 1:
+                        for c in self.controllers:
+                            c.player = None
+                            c.mode = None
+                        while len(self.players) > 0:
+                            del self.players[0]
+
                     del self.cursors[i]
                     i -= 1
             i += 1
@@ -292,8 +541,17 @@ class MenuScene(Scene):
         # Check for new controllers
         for c in self.controllers:
             if c.btns_d[Controller.Buttons.A]:
-                if len([cur for cur in self.cursors if c == cur.controller]) == 0:
+                find_cur = [
+                    cur for cur in self.cursors if (
+                        c == cur.controller)]
+
+                if len(find_cur) == 0:
                     self.cursors.append(self.Cursor(c))
+                    # Add the first tank
+                    if len(self.cursors) == 1 and len(self.players) == 0:
+                        p = Player(mstps[0], playerColors[0])
+                        self.players.append(p)
+                        c.setPlayer(p, Controller.Mode.BOTH)
 
         self.draw()
 

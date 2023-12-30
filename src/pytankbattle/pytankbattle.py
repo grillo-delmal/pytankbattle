@@ -63,6 +63,11 @@ class PyTankBattle():
         self.engine.canon_img = pygame.image.load(
             files('pytankbattle.assets').joinpath('canon.png').open())
 
+        PyGameJoystick.cur_img = pygame.image.load(
+            files('pytankbattle.assets').joinpath('jcur.png').open())
+        PyGameKeyboardMouse.cur_img = pygame.image.load(
+            files('pytankbattle.assets').joinpath('kmcur.png').open())
+
         self.engine.keyboardmouse = PyGameKeyboardMouse()
         self.data.controllers.append(self.engine.keyboardmouse)
 
