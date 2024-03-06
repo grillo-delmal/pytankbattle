@@ -12,12 +12,17 @@ class GameScene(Scene):
         super().__init__()
         self.engine = engine
         self.data = data
+        self.pause = False
 
     def update_ps(self):
         for CD in self.data.controllers:
             p = CD.player
             if p is None or CD.mode is None:
                 continue
+
+            # Check for pause
+            if CD.btns_d[Controller.Buttons.PAUSE]:
+                self.pause = True
 
             if Controller.Mode.TANK in CD.mode:
                 # Set movement
@@ -166,6 +171,7 @@ class GameScene(Scene):
         self.draw()
 
         # TODO: Pause control
-        if False:
+        if self.pause:
+            self.pause = False
             return self.data.State.PAUSE
         return self.data.State.GAME

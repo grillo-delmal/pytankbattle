@@ -17,6 +17,7 @@ class Controller():
         A     = auto()
         B     = auto()
         SHOOT = auto()
+        PAUSE = auto()
 
     def __init__(self):
         self.move_angle = 0
@@ -30,7 +31,8 @@ class Controller():
             self.Buttons.RIGHT: False,
             self.Buttons.A: False,
             self.Buttons.B: False,
-            self.Buttons.SHOOT: False
+            self.Buttons.SHOOT: False,
+            self.Buttons.PAUSE: False
         }
 
         self.player = None

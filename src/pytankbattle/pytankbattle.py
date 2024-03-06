@@ -81,21 +81,10 @@ class PyTankBattle():
             self.engine.joysticks[driver.get_instance_id()] = joy 
             self.data.controllers.append(joy)
 
-        # FIXME: Players are not initialized here
-        #for c in self.data.controllers:
-        #    pi = len(self.data.players)
-        #    p = Player(self.mstps[pi], self.playerColors[pi])
-        #    c.setPlayer(p, Controller.Mode.BOTH) 
-        #    self.data.players.append(p)
-
-        ## Fill rest of players
-        #for pi in range(len(self.data.players), 8):
-        #    p = Player(self.mstps[pi], self.playerColors[pi])
-        #    self.data.players.append(p)
-
-        # FIXME: Prepare Menu, not Game
         self.scenes[self.Data.State.MENU] = MenuScene(self.engine, self.data)
         self.scenes[self.Data.State.GAME] = GameScene(self.engine, self.data)
+        self.scenes[self.Data.State.PAUSE] = PauseScene(self.engine, self.data)
+        self.scenes[self.Data.State.CREDITS] = CreditsScene(self.engine, self.data)
         self.data.state = self.Data.State.MENU
 
     def scan_pads(self):

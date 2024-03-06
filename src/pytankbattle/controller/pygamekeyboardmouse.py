@@ -67,6 +67,8 @@ class PyGameKeyboardMouse(Controller):
                 self.btns_d[Controller.Buttons.A] = True
             if button == pygame.K_BACKSPACE:
                 self.btns_d[Controller.Buttons.B] = True
+            if button == pygame.K_ESCAPE:
+                self.btns_d[Controller.Buttons.PAUSE] = True
 
         if event_type == pygame.MOUSEBUTTONDOWN:
             if button == 1 or button == 3:
