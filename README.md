@@ -6,8 +6,14 @@ This is a port of the [Tanks](https://wiibrew.org/wiki/Tanks) game published in 
 
 # Build
 
-This requires the pygame library. To build run the following command:
+This requires the pygame library. To build and install run the following command:
 
 ```sh
-python -m build
+pip install .
+```
+
+Then you can run the game by calling it on the terminal
+
+```sh
+pytankbattle
 ```
