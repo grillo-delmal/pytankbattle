@@ -45,11 +45,11 @@ class PauseScene(Scene):
 
             # Return to game control
             if CD.btns_d[Controller.Buttons.A]:
-                return self.data.State.GAME
+                return GameState.GAME
 
             # Quit game control
             if CD.btns_d[Controller.Buttons.B]:
-                return self.data.State.CREDITS
+                return GameState.CREDITS
 
-        return self.data.State.PAUSE
+        return GameState.PAUSE
 

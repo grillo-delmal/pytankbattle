@@ -173,5 +173,5 @@ class GameScene(Scene):
         # TODO: Pause control
         if self.pause:
             self.pause = False
-            return self.data.State.PAUSE
-        return self.data.State.GAME
+            return GameState.PAUSE
+        return GameState.GAME

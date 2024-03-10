@@ -1,2 +1,2 @@
-from .utils import TextPrint, playerColors
+from .utils import *
 from .consts import *

@@ -8,7 +8,7 @@ from .scene import Scene
 
 import pygame
 
-class State(Enum):
+class CursorState(Enum):
     ADD_TANK = auto()
     REMOVE_TANK = auto()
     SELECT_TANK = auto()
@@ -20,7 +20,10 @@ class State(Enum):
 
 class MenuScene(Scene):
     class FlowStep():
-        def __init__(self, act, left:State, right:State, b:State=None, a:State=None):
+        def __init__(
+                self, act, 
+                left:CursorState, right:CursorState, 
+                b:CursorState=None, a:CursorState=None):
             self.act = act
             self.left = left
             self.right = right
@@ -30,7 +33,7 @@ class MenuScene(Scene):
     class Cursor():
         def __init__(self, controller:Controller):
             self.controller = controller
-            self.pos = State.ADD_TANK
+            self.pos = CursorState.ADD_TANK
 
             self.controller_i = 0
             self.tank_i = 0
@@ -48,38 +51,38 @@ class MenuScene(Scene):
         self.cursors = []
 
         self.flow = {
-            State.ADD_TANK:
+            CursorState.ADD_TANK:
                 self.FlowStep(
                     self.add_tank, 
-                    None, State.REMOVE_TANK),
-            State.REMOVE_TANK:     
+                    None, CursorState.REMOVE_TANK),
+            CursorState.REMOVE_TANK:     
                 self.FlowStep(
                     self.remove_tank, 
-                    State.ADD_TANK, State.SELECT_TANK),
-            State.SELECT_TANK:
+                    CursorState.ADD_TANK, CursorState.SELECT_TANK),
+            CursorState.SELECT_TANK:
                 self.FlowStep(
                     None,
-                    State.REMOVE_TANK, State.SELECT_COLOR,
-                    a=State.SELECTING_TANK),
-            State.SELECTING_TANK: 
+                    CursorState.REMOVE_TANK, CursorState.SELECT_COLOR,
+                    a=CursorState.SELECTING_TANK),
+            CursorState.SELECTING_TANK: 
                 self.FlowStep(
                     self.select_tank, 
                     None, None,
-                    b=State.SELECT_TANK),
-            State.SELECT_COLOR:
+                    b=CursorState.SELECT_TANK),
+            CursorState.SELECT_COLOR:
                 self.FlowStep(
                     None,
-                    State.SELECT_TANK, State.START,
-                    a=State.SELECTING_COLOR),
-            State.SELECTING_COLOR: 
+                    CursorState.SELECT_TANK, CursorState.START,
+                    a=CursorState.SELECTING_COLOR),
+            CursorState.SELECTING_COLOR: 
                 self.FlowStep(
                     self.select_color, 
                     None, None,
-                    b=State.SELECT_COLOR),
-            State.START:
+                    b=CursorState.SELECT_COLOR),
+            CursorState.START:
                 self.FlowStep(
                     self.start,
-                    State.SELECT_COLOR, None)
+                    CursorState.SELECT_COLOR, None)
         }
 
     def add_tank(self, cur):
@@ -290,27 +293,27 @@ class MenuScene(Scene):
             "Add Tank",
             (div*1 - 120/2, 130), (120 , 50),
             len([cur for cur in self.cursors if (
-                cur.pos == State.ADD_TANK)]) > 0)
+                cur.pos == CursorState.ADD_TANK)]) > 0)
         add_button(
             "Remove Tank",
             (div*2 - 120/2, 130), (120 , 50),
             len([cur for cur in self.cursors if (
-                cur.pos == State.REMOVE_TANK)]) > 0)
+                cur.pos == CursorState.REMOVE_TANK)]) > 0)
         add_button(
             "Tank Controller",
             (div*3 - 120/2, 130), (120 , 50),
             len([cur for cur in self.cursors if (
-                cur.pos == State.SELECT_TANK)]) > 0)
+                cur.pos == CursorState.SELECT_TANK)]) > 0)
         add_button(
             "Tank Color",
             (div*4 - 120/2, 130), (120 , 50),
             len([cur for cur in self.cursors if (
-                cur.pos == State.SELECT_COLOR)]) > 0)
+                cur.pos == CursorState.SELECT_COLOR)]) > 0)
         add_button(
             "Start",
             (div*5 - 120/2, 130), (120 , 50),
             len([cur for cur in self.cursors if (
-                cur.pos == State.START)]) > 0)
+                cur.pos == CursorState.START)]) > 0)
 
         pygame.draw.rect(
             self.engine.screen,
@@ -348,7 +351,7 @@ class MenuScene(Scene):
             # Draw color bars
             color_cur = [
                 cur for cur in self.cursors if (
-                    cur.pos == State.SELECTING_COLOR) and
+                    cur.pos == CursorState.SELECTING_COLOR) and
                     cur.tank_i == pi]
 
             if len(color_cur) > 0:
@@ -421,7 +424,7 @@ class MenuScene(Scene):
             # Draw controller selector
             ctrl_cur = [
                 cur.controller_i for cur in self.cursors if (
-                    cur.pos == State.SELECTING_TANK)]
+                    cur.pos == CursorState.SELECTING_TANK)]
 
             posy = 90
             ci = 0
@@ -456,7 +459,7 @@ class MenuScene(Scene):
         if len(self.players) > 0:
             ctrl_cur = [
                 cur.controller_i for cur in self.cursors if (
-                    cur.pos == State.SELECTING_TANK)]
+                    cur.pos == CursorState.SELECTING_TANK)]
             posx = p_area.get_width() / (len(self.players) + 2)
             posy = 90
             ci = 0
@@ -556,5 +559,5 @@ class MenuScene(Scene):
         self.draw()
 
         if self.start_game:
-            return self.data.State.GAME
-        return self.data.State.MENU
+            return GameState.GAME
+        return GameState.MENU

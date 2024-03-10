@@ -8,7 +8,6 @@ import pygame
 import math
 import os
 
-from enum import Enum, auto
 from importlib.resources import files
 
 from .controller import *
@@ -21,12 +20,6 @@ from .utils import *
 class PyTankBattle():
 
     class Data():
-        class State(Enum):
-            PAUSE   = auto()
-            MENU    = auto()
-            GAME    = auto()
-            CREDITS = auto()
-            QUIT    = auto()
 
         def __init__(self):
             self.players = []
@@ -81,11 +74,11 @@ class PyTankBattle():
             self.engine.joysticks[driver.get_instance_id()] = joy 
             self.data.controllers.append(joy)
 
-        self.scenes[self.Data.State.MENU] = MenuScene(self.engine, self.data)
-        self.scenes[self.Data.State.GAME] = GameScene(self.engine, self.data)
-        self.scenes[self.Data.State.PAUSE] = PauseScene(self.engine, self.data)
-        self.scenes[self.Data.State.CREDITS] = CreditsScene(self.engine, self.data)
-        self.data.state = self.Data.State.MENU
+        self.scenes[GameState.MENU] = MenuScene(self.engine, self.data)
+        self.scenes[GameState.GAME] = GameScene(self.engine, self.data)
+        self.scenes[GameState.PAUSE] = PauseScene(self.engine, self.data)
+        self.scenes[GameState.CREDITS] = CreditsScene(self.engine, self.data)
+        self.data.state = GameState.MENU
 
     def scan_pads(self):
         # Query keyboard for this frame
@@ -102,7 +95,7 @@ class PyTankBattle():
         for event in pygame.event.get():
             # pygame.QUIT event means the user clicked X to close your window
             if event.type == pygame.QUIT:
-                self.data.state = self.Data.State.QUIT
+                self.data.state = GameState.QUIT
 
             if event.type == pygame.JOYBUTTONDOWN:
                 joy = self.engine.joysticks[event.instance_id]
@@ -132,7 +125,7 @@ class PyTankBattle():
     def update_game(self):
         ret = self.data.state
 
-        if self.data.state != self.Data.State.QUIT:
+        if self.data.state != GameState.QUIT:
             ret = self.scenes[self.data.state].run()
         
         pygame.display.flip()
@@ -146,7 +139,7 @@ class PyTankBattle():
     def run(self):
         self.start_up()
 
-        while self.data.state != self.Data.State.QUIT:
+        while self.data.state != GameState.QUIT:
             self.scan_pads()
             self.update_game()
 

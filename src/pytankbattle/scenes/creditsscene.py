@@ -38,11 +38,11 @@ class CreditsScene(Scene):
 
             # Quit game
             if CD.btns_d[Controller.Buttons.A]:
-                return self.data.State.QUIT
+                return GameState.QUIT
             if CD.btns_d[Controller.Buttons.B]:
-                return self.data.State.QUIT
+                return GameState.QUIT
             if CD.btns_d[Controller.Buttons.PAUSE]:
-                return self.data.State.QUIT
+                return GameState.QUIT
 
-        return self.data.State.CREDITS
+        return GameState.CREDITS
 
