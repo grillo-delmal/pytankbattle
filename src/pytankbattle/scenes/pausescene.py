@@ -23,13 +23,19 @@ class PauseScene(Scene):
             (400 - title_bmp.get_width()/2, 250))
         font = pygame.font.Font(None, 32)
         text_bmp = font.render(
-            "Press the A / Enter button to continue\n"
-            "B / Backspace to quit", 
+            "Press the A / Enter button to continue",
             True, 
             (255, 255, 255))
         self.engine.screen.blit(
             text_bmp,
             (400 - text_bmp.get_width()/2, 350))
+        text_bmp = font.render(
+            "B / Backspace to quit", 
+            True, 
+            (255, 255, 255))
+        self.engine.screen.blit(
+            text_bmp,
+            (400 - text_bmp.get_width()/2, 380))
 
 
         for CD in self.data.controllers:
