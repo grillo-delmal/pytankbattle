@@ -234,6 +234,9 @@ class MenuScene(Scene):
 
     def start(self, cur):
         if cur.controller.btns_d[Controller.Buttons.A]:
+            if len(self.data.players) < 1:
+                return
+
             for p in self.data.players:
                 p.reset()
 
