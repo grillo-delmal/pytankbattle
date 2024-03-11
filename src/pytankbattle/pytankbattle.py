@@ -77,6 +77,7 @@ class PyTankBattle():
         self.scenes[GameState.MENU] = MenuScene(self.engine, self.data)
         self.scenes[GameState.GAME] = GameScene(self.engine, self.data)
         self.scenes[GameState.PAUSE] = PauseScene(self.engine, self.data)
+        self.scenes[GameState.RESULT] = ResultScene(self.engine, self.data)
         self.scenes[GameState.CREDITS] = CreditsScene(self.engine, self.data)
         self.data.state = GameState.MENU
 

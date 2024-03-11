@@ -173,6 +173,10 @@ class GameScene(Scene):
         self.update_bs()
         self.draw()
 
+        for p in self.data.players:
+            if p.score == 10:
+                return GameState.RESULT
+
         # Pause control
         if self.pause:
             self.pause = False

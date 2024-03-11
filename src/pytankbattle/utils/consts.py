@@ -4,6 +4,7 @@ class GameState(Enum):
     PAUSE   = auto()
     MENU    = auto()
     GAME    = auto()
+    RESULT  = auto()
     CREDITS = auto()
     QUIT    = auto()
 
