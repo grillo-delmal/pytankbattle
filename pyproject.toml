@@ -1,13 +1,12 @@
 [project]
 name = "pytankbattle"
-dynamic = ["version"]
 authors = [
     { name="Grillo del Mal", email="grillo@delmal.cl" },
 ]
 description = "A multiplayer battle royale tank game using the pygame engine"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: BSD License", 
@@ -15,9 +14,7 @@ classifiers = [
     "Topic :: Games/Entertainment",
     "Topic :: Software Development :: Libraries :: pygame"
 ]
-dependencies = [
-    "pygame"
-]
+dynamic = ["version", "dependencies"]
 
 [project.urls]
 Homepage = "https://github.com/grillo-delmal/pytankbattle"
@@ -35,3 +32,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools-git-versioning]
 enabled = true
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
