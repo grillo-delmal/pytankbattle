@@ -15,7 +15,7 @@ class CreditsScene(Scene):
         self.engine.screen.fill("black")
         font = pygame.font.Font(None, 64)
         title_bmp = font.render(
-            "Thankyou for Playing", 
+            "Thank you for Playing", 
             True, 
             (255, 255, 255))
 
