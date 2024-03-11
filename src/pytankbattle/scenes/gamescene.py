@@ -1,10 +1,14 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.
+
 import pygame
 import math
 
 from ..controller import Controller
 from ..entities import Bullet
 from ..map import check_map_collision
-from ..utils.consts import SCREEN_MOVE_X, SCREEN_MOVE_Y, WIDTH, HEIGHT
+from ..utils.consts import SCREEN_MOVE_X, SCREEN_MOVE_Y, WIDTH, HEIGHT, WIN_SCORE
 from ..utils.data import GameState
 
 from .scene import Scene
@@ -150,7 +154,7 @@ class GameScene(Scene):
         self.draw()
 
         for p in self.data.players:
-            if p.score == 10:
+            if p.score == WIN_SCORE:
                 return GameState.RESULT
 
         # Pause control

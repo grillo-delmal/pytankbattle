@@ -1,3 +1,7 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.
+
 from enum import Enum, auto
 
 from ..controller import Controller
@@ -237,7 +241,7 @@ class MenuScene(Scene):
 
     def start(self, cur):
         if cur.controller.btns_d[Controller.Buttons.A]:
-            if len(self.data.players) < 1:
+            if len(self.data.players) < 2:
                 return
 
             for p in self.data.players:

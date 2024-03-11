@@ -1,16 +1,20 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.
+
 from ..map import MapStartPos
-from ..utils.consts import CANON_RELOAD_TIME, MAX_BULLETS
+from ..utils.consts import CANON_RELOAD_TIME, CANON_MAX_BULLETS, MAX_BULLETS
 
 
 class Canon():
     def __init__(self, color):
         self.angle = 0.0
-        self.bullets = 5
+        self.bullets = CANON_MAX_BULLETS
         self.reload = 0
         self.color = color
 
     def reset(self, mstp: MapStartPos):
-        self.bullets = 5
+        self.bullets = CANON_MAX_BULLETS
         self.reload = 0
         self.angle = mstp.angle
         pass

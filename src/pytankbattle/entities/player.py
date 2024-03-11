@@ -1,3 +1,7 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.
+
 from ..map import MapStartPos
 from .tank import Tank
 from ..utils.consts import MAX_BULLETS

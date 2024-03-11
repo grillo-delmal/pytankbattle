@@ -1,5 +1,9 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.
+
 from ..map import MapStartPos
-from ..utils.consts import CANON_INMUNE_TIME, TANK_RADIUS, TANK_MAX_SPEED
+from ..utils.consts import TANK_INMUNE_TIME, TANK_RADIUS, TANK_MAX_SPEED
 from .canon import Canon
 from .collidable import Collidable
 
@@ -17,7 +21,7 @@ class Tank(Collidable):
 
     def reset(self, mstp: MapStartPos):
         self.v = 0.0
-        self.inmune = CANON_INMUNE_TIME
+        self.inmune = TANK_INMUNE_TIME
 
         self.px = mstp.px
         self.py = mstp.py
