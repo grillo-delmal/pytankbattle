@@ -35,3 +35,9 @@ enabled = true
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
+
+[tool.cxfreeze]
+executables = [{ script = "src/pytankbattle/__init__.py", base = "gui", target_name = "pyTankBattle" }]
+
+[tool.cxfreeze.build_exe]
+zip_include_packages = ["pygame"]
