@@ -31,10 +31,9 @@ class ResultScene(Scene):
         win_pid = self.winners()
         self.engine.screen.fill("black")
 
-        font = pygame.font.Font(None, 64)
         title_bmp = None
         if len(win_pid) > 1:
-            title_bmp = font.render(
+            title_bmp = self.engine.font_big.render(
                 "It's a Tie! Players %s won!" % (
                     ", ".join(
                         ["%d" % (pid + 1) for pid in win_pid])
@@ -42,12 +41,12 @@ class ResultScene(Scene):
                 True, 
                 (255, 255, 255))
         elif len(win_pid) == 1:
-            title_bmp = font.render(
+            title_bmp = self.engine.font_big.render(
                 "Player %d won!" % (win_pid[0] + 1), 
                 True, 
                 (255, 255, 255))
         else:
-            title_bmp = font.render(
+            title_bmp = self.engine.font_big.render(
                 "¯\_(ツ)_/¯", 
                 True, 
                 (255, 255, 255))
@@ -55,15 +54,14 @@ class ResultScene(Scene):
             title_bmp,
             (400 - title_bmp.get_width()/2, 250))
 
-        font = pygame.font.Font(None, 32)
-        text_bmp = font.render(
+        text_bmp = self.engine.font_normal.render(
             "Press A / Enter button to go back to the title screen",
             True, 
             (255, 255, 255))
         self.engine.screen.blit(
             text_bmp,
             (400 - text_bmp.get_width()/2, 350))
-        text_bmp = font.render(
+        text_bmp = self.engine.font_normal.render(
             "B / Backspace to quit", 
             True, 
             (255, 255, 255))

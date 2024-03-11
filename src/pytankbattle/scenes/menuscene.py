@@ -252,8 +252,7 @@ class MenuScene(Scene):
     def draw(self):
 
         self.engine.screen.fill("black")
-        font = pygame.font.Font(None, 64)
-        title_bmp = font.render(
+        title_bmp = self.engine.font_big.render(
             "pyTankBattle", 
             True, 
             (255, 255, 255))
@@ -261,8 +260,7 @@ class MenuScene(Scene):
             self.engine.screen.blit(
                 title_bmp,
                 (400 - title_bmp.get_width()/2, 250))
-            font = pygame.font.Font(None, 32)
-            text_bmp = font.render(
+            text_bmp = self.engine.font_normal.render(
                 "Press the A / Enter button to continue", 
                 True, 
                 (255, 255, 255))
@@ -277,7 +275,6 @@ class MenuScene(Scene):
         
         # Draw buttons
         def add_button(text, pos, size, active):
-            font = pygame.font.Font(None, 24)
             pygame.draw.rect(
                 self.engine.screen,
                 (0x33,0x33,0x33) if not active else (0xBB,0xBB,0xBB),
@@ -286,7 +283,7 @@ class MenuScene(Scene):
                     size),
                 0)
 
-            text_bitmap = font.render(
+            text_bitmap = self.engine.font_small.render(
                     text, 
                     True, 
                     (255, 255, 255))

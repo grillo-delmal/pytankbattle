@@ -17,8 +17,7 @@ class CreditsScene(Scene):
 
     def run(self):
         self.engine.screen.fill("black")
-        font = pygame.font.Font(None, 64)
-        title_bmp = font.render(
+        title_bmp = self.engine.font_big.render(
             "Thank you for Playing", 
             True, 
             (255, 255, 255))
@@ -26,8 +25,7 @@ class CreditsScene(Scene):
         self.engine.screen.blit(
             title_bmp,
             (400 - title_bmp.get_width()/2, 250))
-        font = pygame.font.Font(None, 32)
-        text_bmp = font.render(
+        text_bmp = self.engine.font_normal.render(
             "This was a Grillo del Mal game ^^", 
             True, 
             (255, 255, 255))

@@ -16,8 +16,7 @@ class PauseScene(Scene):
 
     def run(self):
         self.engine.screen.fill("black")
-        font = pygame.font.Font(None, 64)
-        title_bmp = font.render(
+        title_bmp = self.engine.font_big.render(
             "Pause", 
             True, 
             (255, 255, 255))
@@ -25,15 +24,14 @@ class PauseScene(Scene):
         self.engine.screen.blit(
             title_bmp,
             (400 - title_bmp.get_width()/2, 250))
-        font = pygame.font.Font(None, 32)
-        text_bmp = font.render(
+        text_bmp = self.engine.font_normal.render(
             "Press the A / Enter button to continue",
             True, 
             (255, 255, 255))
         self.engine.screen.blit(
             text_bmp,
             (400 - text_bmp.get_width()/2, 350))
-        text_bmp = font.render(
+        text_bmp = self.engine.font_normal.render(
             "B / Backspace to quit", 
             True, 
             (255, 255, 255))

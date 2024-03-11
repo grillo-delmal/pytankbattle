@@ -39,6 +39,14 @@ class PyTankBattle():
         PyGameKeyboardMouse.cur_img = pygame.image.load(
             files('pytankbattle.assets').joinpath('kmcur.png').open())
 
+        self.engine.font_big = pygame.font.Font(
+            files('pytankbattle.assets').joinpath('FreeSansBold.ttf').open(), 32)
+        self.engine.font_normal = pygame.font.Font(
+            files('pytankbattle.assets').joinpath('FreeSansBold.ttf').open(), 24)
+        self.engine.font_small = pygame.font.Font(
+            files('pytankbattle.assets').joinpath('FreeSansBold.ttf').open(), 16)
+
+
         self.engine.keyboardmouse = PyGameKeyboardMouse()
         self.data.controllers.append(self.engine.keyboardmouse)
 

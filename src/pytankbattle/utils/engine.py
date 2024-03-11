@@ -13,3 +13,6 @@ class Engine():
         self.tank_img = None
         self.canon_img = None
 
+        self.font_big = None
+        self.font_normal = None
+        self.font_small = None
