@@ -67,33 +67,30 @@ class GameScene(Scene):
             p.t.py = fy
 
     def update_bs(self):
-        dflag = False
+        j = 0
+        while j < len(self.data.bullets):
+            b = self.data.bullets[j]
+            dflag = False
 
-        for b in self.data.bullets:
             # Update position
             b.px, b.py = b.get_new_pos()
 
-            # Check colisions
-            for op in self.data.players:
-                if op.active and op != b.owner and op.t.inmune == 0 :
-                    if b.check_colision(op.t):
-                        b.owner.score += 1
-                        op.reset_tank()
-                        b.del_b = True
-                        dflag = True
-
             # Check for walls
             if check_map_collision(b):
-                b.del_b = True
                 dflag = True
+            else:
+                # Check colisions
+                for op in self.data.players:
+                    if op.active and op != b.owner and op.t.inmune == 0 :
+                        if b.check_colision(op.t):
+                            b.owner.score += 1
+                            op.reset_tank()
+                            dflag = True
 
-        if dflag:
-            j = 0
-            while j < len(self.data.bullets):
-                if self.data.bullets[j].del_b:
-                    del self.data.bullets[j]
-                    j -= 1
-                j += 1
+            if dflag:
+                del self.data.bullets[j]
+                j -= 1
+            j += 1
 
     def draw(self):
         self.engine.screen.fill("black")
