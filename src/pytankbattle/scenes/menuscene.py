@@ -46,9 +46,6 @@ class MenuScene(Scene):
         self.controllers = data.controllers
         self.players = data.players
         self.data = data
-        self.start_game = False
-
-        self.cursors = []
 
         self.flow = {
             CursorState.ADD_TANK:
@@ -84,6 +81,11 @@ class MenuScene(Scene):
                     self.start,
                     CursorState.SELECT_COLOR, None)
         }
+        self.reset()
+    
+    def reset(self):
+        self.start_game = False
+        self.cursors = []
 
     def add_tank(self, cur):
         if cur.controller.btns_d[Controller.Buttons.A]:

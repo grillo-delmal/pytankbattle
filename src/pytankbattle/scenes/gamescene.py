@@ -14,6 +14,9 @@ class GameScene(Scene):
         self.data = data
         self.pause = False
 
+    def reset(self):
+        self.pause = False
+
     def update_ps(self):
         for CD in self.data.controllers:
             p = CD.player
@@ -170,7 +173,7 @@ class GameScene(Scene):
         self.update_bs()
         self.draw()
 
-        # TODO: Pause control
+        # Pause control
         if self.pause:
             self.pause = False
             return GameState.PAUSE

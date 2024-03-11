@@ -127,6 +127,10 @@ class PyTankBattle():
 
         if self.data.state != GameState.QUIT:
             ret = self.scenes[self.data.state].run()
+
+        if ret != self.data.state:
+            # Reset scene
+            self.scenes[self.data.state].reset()
         
         pygame.display.flip()
         self.engine.clock.tick(30)
