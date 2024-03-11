@@ -1,4 +1,4 @@
-from .mapstartpos import MapStartPos
+from ..utils.mapstartpos import MapStartPos
 from ..utils.consts import WIDTH, HEIGHT
 from ..entities.collidable import Collidable
 import math
