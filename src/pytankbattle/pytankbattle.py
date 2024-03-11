@@ -11,37 +11,15 @@ import os
 from importlib.resources import files
 
 from .controller import *
-from .map import *
-from .entities import *
 from .scenes import *
 from .utils import *
 
 
 class PyTankBattle():
 
-    class Data():
-
-        def __init__(self):
-            self.players = []
-            self.bullets = []
-            self.controllers = []
-
-            self.state = None
-
-    class Engine():
-        def __init__(self):
-            self.screen = None
-            self.clock = None
-            self.keyboardmouse = None
-            self.joysticks = {}
-            self.text_print = None
-
-            self.tank_img = None
-            self.canon_img = None
-
     def __init__(self):
-        self.data = self.Data()
-        self.engine = self.Engine()
+        self.data = Data()
+        self.engine = Engine()
         self.scenes = {}
 
     def start_up(self):

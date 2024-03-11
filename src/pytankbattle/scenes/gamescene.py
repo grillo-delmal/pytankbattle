@@ -3,7 +3,9 @@ import math
 
 from ..controller import Controller
 from ..entities import Bullet
-from ..utils.consts import *
+from ..map import check_map_collision
+from ..utils.consts import SCREEN_MOVE_X, SCREEN_MOVE_Y, WIDTH, HEIGHT
+from ..utils.data import GameState
 
 from .scene import Scene
 
@@ -29,45 +31,24 @@ class GameScene(Scene):
 
             if Controller.Mode.TANK in CD.mode:
                 # Set movement
-                if CD.move_magnitude > .3:
-                    p.t.angle = CD.move_angle
-                    p.t.v = TANK_MAX_SPEED * CD.move_magnitude
-                else:
-                    p.t.v = 0
+                p.t.apply_control(CD)
 
             if Controller.Mode.CANON in CD.mode:
                 # Aim canon
-                if CD.point_magnitude > .3:
-                    p.t.c.angle = CD.point_angle
+                p.t.c.apply_control(CD)
 
             # Fire bullets
             if CD.btns_d[Controller.Buttons.SHOOT]:
-                if p.t.c.bullets > 0 and len(self.data.bullets) < MAX_BULLETS:
+                if p.t.c.shoot_canon(len(self.data.bullets)):
                     self.data.bullets.append(Bullet(p))
-                    p.t.c.bullets -= 1
-                    p.t.c.reload += CANON_RELOAD_TIME
 
         for p in self.data.players:
             # Update counters
-            if p.t.c.reload > 0:
-                p.t.c.reload -= 1
-                if p.t.c.reload % CANON_RELOAD_TIME == 0:
-                    p.t.c.bullets += 1
-            
-            if p.t.inmune > 0:
-                p.t.inmune -= 1
+            p.t.update_counters()
 
             # Update physics
-            fx = ( p.t.px + p.t.v*math.cos(p.t.angle) )
-            fy = ( p.t.py + p.t.v*math.sin(p.t.angle) )
-
-
-            if not (fx > TANK_RADIUS and fx < WIDTH - TANK_RADIUS ):
-                fx = p.t.px
-                fy = p.t.py
-                p.t.v = 0
-
-            if not (fy > TANK_RADIUS and fy < HEIGHT - TANK_RADIUS ):
+            fx, fy = p.t.get_new_pos()
+            if check_map_collision(p.t, fx, fy):
                 fx = p.t.px
                 fy = p.t.py
                 p.t.v = 0
@@ -77,7 +58,7 @@ class GameScene(Scene):
                     continue
 
                 if op.active and p.t.inmune == 0:
-                    if op.t.check_colision(fx, fy):
+                    if op.t.check_colision(p.t, fx, fy):
                         fx = p.t.px
                         fy = p.t.py
                         p.t.v = 0
@@ -86,25 +67,23 @@ class GameScene(Scene):
             p.t.py = fy
 
     def update_bs(self):
-
         dflag = False
 
         for b in self.data.bullets:
             # Update position
-            b.px = ( b.px + BULLET_SPEED*math.cos(b.angle) )
-            b.py = ( b.py + BULLET_SPEED*math.sin(b.angle) )
+            b.px, b.py = b.get_new_pos()
 
             # Check colisions
             for op in self.data.players:
                 if op.active and op != b.owner and op.t.inmune == 0 :
-                    if b.check_colision( op.t.px, op.t.py):
+                    if b.check_colision(op.t):
                         b.owner.score += 1
                         op.reset_tank()
                         b.del_b = True
                         dflag = True
 
             # Check for walls
-            if b.px < 0 or b.px > WIDTH or b.py < 0 or b.py > HEIGHT:
+            if check_map_collision(b):
                 b.del_b = True
                 dflag = True
 
@@ -131,10 +110,10 @@ class GameScene(Scene):
         for p in self.data.players:
             if p.t.inmune % 15 < 8:
                 rotated_tank = pygame.transform.rotate(
-                    self.engine.tank_img, -p.t.angle * 180 / PI)
+                    self.engine.tank_img, -p.t.angle * 180 / math.pi)
                 rotated_tank.fill(p.t.color, special_flags=pygame.BLEND_ADD)
                 rotated_canon = pygame.transform.rotate(
-                    self.engine.canon_img, -p.t.c.angle * 180 / PI)
+                    self.engine.canon_img, -p.t.c.angle * 180 / math.pi)
                 rotated_canon.fill(p.t.c.color, special_flags=pygame.BLEND_ADD)
                 self.engine.screen.blit(
                     rotated_tank, 

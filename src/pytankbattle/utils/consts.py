@@ -1,13 +1,3 @@
-from enum import Enum, auto
-
-class GameState(Enum):
-    PAUSE   = auto()
-    MENU    = auto()
-    GAME    = auto()
-    RESULT  = auto()
-    CREDITS = auto()
-    QUIT    = auto()
-
 playerColors = [
     (0x33, 0xBB, 0x33),
     (0xBB, 0x33, 0x33),
@@ -28,7 +18,8 @@ TANK_RADIUS         = 16
 
 TANK_MAX_SPEED      = 3
 CANON_RELOAD_TIME   = 120
-CANON_INMUNE_TIME   = 240
+# OLD: CANON_INMUNE_TIME   = 240
+CANON_INMUNE_TIME   = 90
 
 MAX_BULLETS         = 100
 

@@ -1,11 +1,14 @@
 from ..map import MapStartPos
-from ..utils.consts import CANON_INMUNE_TIME, TANK_RADIUS
+from ..utils.consts import CANON_INMUNE_TIME, TANK_RADIUS, TANK_MAX_SPEED
 from .canon import Canon
+from .collidable import Collidable
 
-class Tank():
+import math
+
+class Tank(Collidable):
     def __init__(self, color):
-        self.px = 0.0
-        self.py = 0.0
+        super().__init__(0, 0, TANK_RADIUS)
+
         self.v = 0.0
         self.angle = 0
         self.inmune = 0
@@ -20,12 +23,21 @@ class Tank():
         self.py = mstp.py
         self.angle = mstp.angle
         self.c.reset(mstp)
-    
-    def check_colision(self, fx, fy):
-        ## PX PY fx fy TR TR
-        a = fx - self.px
-        b = fy - self.py
 
-        if (a**2 + b**2) < (TANK_RADIUS*2)**2:
-            return True
-        return False
+    def apply_control(self, CD):
+        if CD.move_magnitude > .3:
+            self.angle = CD.move_angle
+            self.v = TANK_MAX_SPEED * CD.move_magnitude
+        else:
+            self.v = 0
+
+    def get_new_pos(self):
+        return (
+            ( self.px + self.v*math.cos(self.angle) ),
+            ( self.py + self.v*math.sin(self.angle) ))
+
+    def update_counters(self):
+        self.c.update_counters()
+        
+        if self.inmune > 0:
+            self.inmune -= 1

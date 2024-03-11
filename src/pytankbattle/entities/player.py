@@ -1,5 +1,6 @@
 from ..map import MapStartPos
 from .tank import Tank
+from ..utils.consts import MAX_BULLETS
 
 
 class Player():
@@ -16,5 +17,3 @@ class Player():
 
     def reset_tank(self):
         self.t.reset(self.mstp)
-
-

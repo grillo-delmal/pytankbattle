@@ -2,7 +2,7 @@ import pygame
 import math
 
 from .controller import Controller
-from ..utils.consts import WIDTH, HEIGHT, SCREEN_MOVE_X, SCREEN_MOVE_Y, PI
+from ..utils.consts import WIDTH, HEIGHT, SCREEN_MOVE_X, SCREEN_MOVE_Y
 
 class PyGameKeyboardMouse(Controller):
     def __init__(self):
@@ -17,25 +17,25 @@ class PyGameKeyboardMouse(Controller):
         elif keys[pygame.K_a] and keys[pygame.K_d]:
             self.move_magnitude = 0
         elif keys[pygame.K_w] and keys[pygame.K_a]:
-            self.move_angle = -3*PI/4
+            self.move_angle = -3*math.pi/4
             self.move_magnitude = 1
         elif keys[pygame.K_w] and keys[pygame.K_d]:
-            self.move_angle = -PI/4
+            self.move_angle = -math.pi/4
             self.move_magnitude = 1
         elif keys[pygame.K_s] and keys[pygame.K_a]:
-            self.move_angle = 3*PI/4
+            self.move_angle = 3*math.pi/4
             self.move_magnitude = 1
         elif keys[pygame.K_s] and keys[pygame.K_d]:
-            self.move_angle = PI/4
+            self.move_angle = math.pi/4
             self.move_magnitude = 1
         elif keys[pygame.K_w]:
-            self.move_angle = -PI/2
+            self.move_angle = -math.pi/2
             self.move_magnitude = 1
         elif keys[pygame.K_s]:
-            self.move_angle = PI/2
+            self.move_angle = math.pi/2
             self.move_magnitude = 1
         elif keys[pygame.K_a]:
-            self.move_angle = PI
+            self.move_angle = math.pi
             self.move_magnitude = 1
         elif keys[pygame.K_d]:
             self.move_angle = 0

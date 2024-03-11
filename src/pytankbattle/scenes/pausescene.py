@@ -2,7 +2,7 @@ import pygame
 
 from .scene import Scene
 from ..controller import Controller
-from ..utils.consts import *
+from ..utils.data import GameState
 
 class PauseScene(Scene):
     def __init__(self, engine, data):

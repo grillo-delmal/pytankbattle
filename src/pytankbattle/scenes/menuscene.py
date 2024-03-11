@@ -3,8 +3,9 @@ from enum import Enum, auto
 from ..controller import Controller
 from ..map import mstps
 from ..entities import Player
-from ..utils import *
 from .scene import Scene
+from ..utils.data import GameState
+from ..utils.consts import playerColors
 
 import pygame
 

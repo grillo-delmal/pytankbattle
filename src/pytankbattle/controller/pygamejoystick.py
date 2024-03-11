@@ -2,7 +2,7 @@ import pygame
 
 from enum import Enum, auto
 from .controller import Controller
-from ..utils.consts import PI
+import math 
 
 class PyGameJoystick(Controller):
     class CtrlType(Enum):
@@ -42,10 +42,10 @@ class PyGameJoystick(Controller):
             rjoy = pygame.math.Vector2(self.driver.get_axis(3), self.driver.get_axis(4)).as_polar()
 
         self.move_magnitude = ljoy[0]
-        self.move_angle = ljoy[1] * PI / 180
+        self.move_angle = ljoy[1] * math.pi / 180
 
         self.point_magnitude = rjoy[0]
-        self.point_angle = rjoy[1] * PI / 180
+        self.point_angle = rjoy[1] * math.pi / 180
 
     def trigger(self, event_type, button):
         if self.driver is None:
