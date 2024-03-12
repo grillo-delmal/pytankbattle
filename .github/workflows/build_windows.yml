@@ -3,11 +3,12 @@ on:
 
 jobs:
   build:
+    name: Binary Deploy
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-latest']
+        os: ['windows-latest', 'macos-latest']
 
     steps:
     - uses: actions/checkout@v2
@@ -17,7 +18,7 @@ jobs:
 
     - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ cx_Freeze
     - run: pip install -r requirements.txt
-    - run: cxfreeze build
+    - run: cd src; python freeze.py build_exe
     - uses: actions/upload-artifact@v2
       with:
-        path: build/*
+        path: src/build/*
