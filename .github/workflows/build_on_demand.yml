@@ -1,0 +1,70 @@
+# Copyright (c) 2023, Grillo del Mal
+# 
+# Distributed under the 2-Clause BSD License, see LICENSE file.name: Build on Demand
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-build:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ setuptools_git_versioning cx_Freeze
+    - run: pip install -r requirements.txt
+    - run: cd src; python freeze.py build_exe
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: pytankbattle-windows-x86_64
+        path: src/build/*
+
+  macosx-build:
+    name: macOSX Build
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ setuptools_git_versioning cx_Freeze
+    - run: pip install -r requirements.txt
+    - run: cd src; python freeze.py build_exe
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: pytankbattle-macosx-x86_64
+        path: src/build/*
+
+  linux-build:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ setuptools_git_versioning cx_Freeze
+    - run: pip install -r requirements.txt
+    - run: cd src; python freeze.py build_exe
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: pytankbattle-linux-x86_64
+        path: src/build/*
