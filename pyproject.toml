@@ -24,7 +24,7 @@ Issues = "https://github.com/grillo-delmal/pytankbattle/issues"
 pytankbattle = "pytankbattle:main"
 
 [tool.setuptools.package-data]
-"pytankbattle.assets" = ["*.png"]
+"pytankbattle.assets" = ["*.png", "*.ttf"]
 
 [build-system]
 requires = [ "setuptools>=41", "wheel", "setuptools-git-versioning<2", ]
