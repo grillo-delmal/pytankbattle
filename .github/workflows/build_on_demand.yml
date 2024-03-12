@@ -9,9 +9,23 @@ permissions:
   contents: write
 
 jobs:
-  windows-build:
-    name: Windows Build
-    runs-on: windows-latest
+  build:
+    name: Test Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: 'windows-latest'
+            result_name: pytankbattle-windows-x86_64
+            result_path: src/build/exe.win-amd64-3.12/*
+          - os: 'ubuntu-latest'
+            result_name: pytankbattle-linux-x86_64
+            result_path: src/build/exe.linux-x86_64-3.12/*
+          - os: 'macos-latest'
+            result_name: pytankbattle-macosx-x86_64
+            result_path: src/build/exe.macosx-10.9-universal2-3.12/*
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -26,45 +40,5 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: pytankbattle-windows-x86_64
-        path: src/build/*
-
-  macosx-build:
-    name: macOSX Build
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-
-    - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ setuptools_git_versioning cx_Freeze
-    - run: pip install -r requirements.txt
-    - run: cd src; python freeze.py build_exe
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: pytankbattle-macosx-x86_64
-        path: src/build/*
-
-  linux-build:
-    name: Linux Build
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-
-    - run: pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ setuptools_git_versioning cx_Freeze
-    - run: pip install -r requirements.txt
-    - run: cd src; python freeze.py build_exe
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: pytankbattle-linux-x86_64
-        path: src/build/*
+        name: ${{ matrix.result_name }}
+        path: ${{ matrix.result_path }}
