@@ -50,6 +50,7 @@ class PyTankBattle():
         self.engine.font_mini = pygame.font.Font(
             files('pytankbattle.assets').joinpath('FreeSansBold.ttf').open(), 10)
 
+        self.engine.version = get_version()
 
         self.engine.keyboardmouse = PyGameKeyboardMouse()
         self.data.controllers.append(self.engine.keyboardmouse)

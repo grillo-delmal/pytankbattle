@@ -4,6 +4,8 @@
 
 import pygame
 from importlib.resources import files
+import os
+import sys
 
 class TextPrint:
     def __init__(self):
@@ -25,3 +27,19 @@ class TextPrint:
 
     def unindent(self):
         self.x -= 10
+
+
+def get_version():
+    version = "0.0.0"
+    if getattr(sys, "frozen", False):
+        # The application is frozen
+        datadir = os.path.dirname(sys.executable)
+        
+        with open(os.path.join(datadir, 'VERSION')) as version_file:
+            version = version_file.read().strip()
+    else:
+        from importlib import metadata
+        # The application is not frozen
+        # Change this bit to match where you store your data files:
+        version = metadata.version("pytankbattle")
+    return version

@@ -260,6 +260,13 @@ class MenuScene(Scene):
             self.engine.screen.blit(
                 title_bmp,
                 (400 - title_bmp.get_width()/2, 250))
+            text_bmp = self.engine.font_mini.render(
+                self.engine.version, 
+                True, 
+                (255, 255, 255))
+            self.engine.screen.blit(
+                text_bmp,
+                (600 - text_bmp.get_width()/2, 500))
             text_bmp = self.engine.font_normal.render(
                 "Press the A / Enter button to continue", 
                 True, 
