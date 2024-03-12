@@ -252,7 +252,7 @@ class MenuScene(Scene):
     def draw(self):
 
         self.engine.screen.fill("black")
-        title_bmp = self.engine.font_big.render(
+        title_bmp = self.engine.font_huge.render(
             "pyTankBattle", 
             True, 
             (255, 255, 255))
