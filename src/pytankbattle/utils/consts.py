@@ -13,8 +13,6 @@ playerColors = [
     (0xBB, 0xBB, 0xBB),
 ]
 
-PI = 3.14159265
-
 BULLET_SPEED        = 4
 BULLET_RADIUS       = 3.5
 

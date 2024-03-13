@@ -61,7 +61,7 @@ class GameScene(Scene):
                 if op == p:
                     continue
 
-                if op.active and p.t.inmune == 0:
+                if op.active:
                     if op.t.check_colision(p.t, fx, fy):
                         fx = p.t.px
                         fy = p.t.py
