@@ -38,8 +38,14 @@ def get_version():
         with open(os.path.join(datadir, 'VERSION')) as version_file:
             version = version_file.read().strip()
     else:
-        from importlib import metadata
         # The application is not frozen
         # Change this bit to match where you store your data files:
-        version = metadata.version("pytankbattle")
+        from importlib import metadata
+        # TODO: Correctly detect if installed or running from source
+        try:
+            version = metadata.version("pytankbattle")
+        except metadata.PackageNotFoundError:
+            from setuptools_git_versioning import get_version
+            version = str(get_version(root=".."))
+
     return version
